@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Cloudflared SD-WAN Setup for Grav + Gantry5 LXC
-# Installs Cloudflared, configures SD-WAN in Cloudflare, and assigns private IP.
+# Cloudflared Installation & Private Network IP Setup for LXC
+# Uses Cloudflare's official install method and assigns an IP to the LXC.
 
 set -e  # Exit on error
 
@@ -16,13 +16,13 @@ CROSS="${RD}✗${CL}"
 # **Splash Screen**
 clear
 echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e "    🚀 Cloudflared SD-WAN Setup"
-echo -e "       Configuring Private Network in Cloudflare"
+echo -e "    🚀 Cloudflared Setup for LXC"
+echo -e "       Using Cloudflare's Official Method"
 echo -e "${YW}──────────────────────────────────────────────${CL}"
 echo -e " 📌 This script will:"
-echo -e "    - Install Cloudflared"
-echo -e "    - Configure SD-WAN in Cloudflare"
-echo -e "    - Assign a Private IP from Cloudflare"
+echo -e "    - Install Cloudflared via Cloudflare's official method"
+echo -e "    - Register the tunnel using the provided token"
+echo -e "    - Assign a Private IP from the Cloudflare network"
 echo -e "${YW}──────────────────────────────────────────────${CL}"
 sleep 2
 
@@ -33,59 +33,29 @@ if [[ "$(id -u)" -ne 0 ]]; then
 fi
 
 # **User Input**
-read -p "Enter Cloudflare Tunnel Name (must exist): " TUNNEL_NAME
-read -p "Enter Private Network IP to Assign (e.g., 172.16.1.10/32): " PRIVATE_IP
+read -p "Enter Cloudflare Tunnel Token: " TUNNEL_TOKEN
+read -p "Enter Private IP to Assign (must be within 172.16.1.10/29): " PRIVATE_IP
 
-# **Install Cloudflared**
+# **Install Cloudflared Using Cloudflare's Official Method**
 echo -e "${YW}Installing Cloudflared...${CL}"
-wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared
-chmod +x /usr/local/bin/cloudflared
+curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+dpkg -i cloudflared.deb
 
-# **Authenticate Cloudflared**
-echo -e "${YW}Authenticating Cloudflared...${CL}"
+# **Register Tunnel with Cloudflare**
+echo -e "${YW}Registering Cloudflared Tunnel...${CL}"
+cloudflared service install "$TUNNEL_TOKEN"
 
-cloudflared tunnel login
-
-# **Check if Tunnel Exists**
-echo -e "${YW}Checking if Tunnel '$TUNNEL_NAME' exists...${CL}"
-TUNNEL_ID=$(cloudflared tunnel list | grep -i "$TUNNEL_NAME" | awk '{print $1}')
-
-if [[ -z "$TUNNEL_ID" ]]; then
-    echo -e "${CROSS} ${RD}Tunnel '$TUNNEL_NAME' not found in Cloudflare.${CL}"
-    exit 1
-fi
-echo -e "${CM} Tunnel '$TUNNEL_NAME' found. ID: $TUNNEL_ID"
-
-# **Add Private IP Route to Cloudflare SD-WAN**
-echo -e "${YW}Adding Private Network Route: $PRIVATE_IP...${CL}"
-cloudflared tunnel route ip add $PRIVATE_IP $TUNNEL_NAME
-
-# **Enable Cloudflared Service**
-echo -e "${YW}Configuring Cloudflared system service...${CL}"
-mkdir -p /etc/cloudflared
-
-cat <<EOF > /etc/systemd/system/cloudflared.service
-[Unit]
-Description=Cloudflare Tunnel
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/cloudflared tunnel run --config /etc/cloudflared/config.yml
-Restart=always
-User=root
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
+# **Ensure Cloudflared Service is Running**
 systemctl enable cloudflared
-systemctl start cloudflared
+systemctl restart cloudflared
+
+# **Assign Private IP**
+echo -e "${YW}Assigning Private IP: $PRIVATE_IP...${CL}"
+ip addr add $PRIVATE_IP dev eth0
 
 # **Final Confirmation**
 echo -e "${YW}──────────────────────────────────────────────${CL}"
 echo -e " 🎉 Setup Complete!"
-echo -e " 📌 Cloudflared is now running and connected."
+echo -e " 📌 Cloudflared is now running and registered."
 echo -e "    ➤ Private IP Assigned: ${GN}$PRIVATE_IP${CL}"
-echo -e "    ➤ Cloudflare Tunnel: ${GN}$TUNNEL_NAME${CL}"
 echo -e "${YW}──────────────────────────────────────────────${CL}"
