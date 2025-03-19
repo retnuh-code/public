@@ -1,17 +1,19 @@
 #!/bin/bash
-# Proxmox LXC Deployment Script for Grav CMS
-# Deploys a Debian LXC, installs Grav CMS, and makes it accessible via its local IP.
 
-set -e  # Exit on error
+# Load shared functions
+source ../misc/build.func
 
-# Default Settings
-CTID=$(pvesh get /cluster/nextid)  # Get next available container ID
+# Run system checks
+root_check
+shell_check
+pve_check
+
+# Default configuration
+CTID=$(pvesh get /cluster/nextid)
 HOSTNAME="grav"
-TEMPLATE="local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst"
 DISK_SIZE="8G"
 MEMORY="1024"
 CORES="2"
-STORAGE="local-lvm"
 BRIDGE="vmbr0"
 IP="dhcp"
 
@@ -23,67 +25,50 @@ echo "      Installing Grav CMS on Debian"
 echo "──────────────────────────────────────────"
 sleep 2
 
-# User Input Handling
-read -p "Enter LXC Container ID (default: $CTID): " INPUT_CTID
-CTID=${INPUT_CTID:-$CTID}
+# Get Storage Selection
+STORAGE=$(select_storage)
 
-read -p "Enter LXC Hostname (default: $HOSTNAME): " INPUT_HOSTNAME
-HOSTNAME=${INPUT_HOSTNAME:-$HOSTNAME}
+# Confirm settings
+dialog --clear --title "Confirm Settings" --yesno "Proceed with:\n\n\
+Container ID: $CTID\n\
+Hostname: $HOSTNAME\n\
+Disk Size: $DISK_SIZE\n\
+Memory: $MEMORY MB\n\
+Cores: $CORES\n\
+Storage: $STORAGE\n\
+Bridge: $BRIDGE\n\
+IP Address: $IP\n\n\
+Continue?" 20 50
+response=$?
 
-read -p "Enter LXC Disk Size in GB (default: $DISK_SIZE) [Example: 10G]: " INPUT_DISK_SIZE
-DISK_SIZE=${INPUT_DISK_SIZE:-$DISK_SIZE}
+if [[ $response -ne 0 ]]; then
+    msg_error "Installation aborted by user."
+    exit 1
+fi
 
-read -p "Enter LXC Memory in MB (default: $MEMORY) [Example: 2048]: " INPUT_MEMORY
-MEMORY=${INPUT_MEMORY:-$MEMORY}
-
-read -p "Enter LXC Cores (default: $CORES) [Example: 4]: " INPUT_CORES
-CORES=${INPUT_CORES:-$CORES}
-
-read -p "Enter Storage Location (default: $STORAGE) [Example: local, local-lvm]: " INPUT_STORAGE
-STORAGE=${INPUT_STORAGE:-$STORAGE}
-
-read -p "Enter Network Bridge (default: $BRIDGE) [Example: vmbr0]: " INPUT_BRIDGE
-BRIDGE=${INPUT_BRIDGE:-$BRIDGE}
-
-read -p "Enter IP Address (default: DHCP) [Example: 192.168.1.100/24]: " INPUT_IP
-IP=${INPUT_IP:-$IP}
-
-[[ "$IP" == "dhcp" ]] && IP="dhcp"
-
-echo "──────────────────────────────────────────"
-echo "🚀 Creating Debian LXC Container with ID $CTID and Hostname $HOSTNAME..."
-echo "──────────────────────────────────────────"
-
-pct create $CTID $TEMPLATE \
+# Create LXC container
+msg_info "Creating LXC container with ID $CTID"
+pct create $CTID local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst \
     --hostname $HOSTNAME \
     --storage $STORAGE \
-    --rootfs $DISK_SIZE \
+    --rootfs ${DISK_SIZE}G \
     --memory $MEMORY \
     --cores $CORES \
     --net0 name=eth0,bridge=$BRIDGE,ip=$IP \
     --unprivileged 1 \
     --features nesting=1
+msg_ok "LXC container $CTID created."
 
-echo "🚀 Starting LXC Container..."
+# Start LXC container
+msg_info "Starting LXC container $CTID"
 pct start $CTID
-sleep 5
+msg_ok "LXC container $CTID started."
 
-LXC_IP=$(pct exec $CTID -- ip -4 -o addr show eth0 | awk '{print $4}' | cut -d'/' -f1)
-while [[ -z "$LXC_IP" ]]; do
-    echo "⏳ Waiting for IP assignment..."
-    sleep 5
-    LXC_IP=$(pct exec $CTID -- ip -4 -o addr show eth0 | awk '{print $4}' | cut -d'/' -f1)
-done
-
-echo "✅ Container is running with IP: $LXC_IP"
-echo "──────────────────────────────────────────"
-echo "🚀 Installing Grav CMS inside container..."
-echo "──────────────────────────────────────────"
-
+# Install Grav CMS
+msg_info "Installing Grav CMS in container $CTID"
 pct exec $CTID -- bash -c "
     apt update && apt upgrade -y
     apt install -y php php-fpm php-cli php-gd php-curl php-zip php-mbstring php-xml unzip rsync git wget curl nginx
-
     mkdir -p /var/www
     cd /var/www
     wget https://getgrav.org/download/core/grav-admin/latest -O grav-admin.zip
@@ -91,37 +76,7 @@ pct exec $CTID -- bash -c "
     mv grav-admin grav
     chown -R www-data:www-data /var/www/grav
     chmod -R 775 /var/www/grav
-
-    PHP_VERSION=\$(php -r 'echo PHP_MAJOR_VERSION.\".\".PHP_MINOR_VERSION;')
-    PHP_FPM_SOCK=\"/run/php/php\$PHP_VERSION-fpm.sock\"
-
-    cat <<EOF > /etc/nginx/sites-available/grav
-server {
-    listen 80;
-    server_name $LXC_IP;
-
-    root /var/www/grav;
-    index index.php index.html;
-
-    location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:\$PHP_FPM_SOCK;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-EOF
-
-    ln -s /etc/nginx/sites-available/grav /etc/nginx/sites-enabled/
-    systemctl restart nginx
 "
+msg_ok "Grav CMS installed."
 
-echo "✅ Grav CMS is now accessible at: http://$LXC_IP"
-echo "──────────────────────────────────────────"
-echo "🎉 Deployment Complete!"
-echo "  Visit: http://$LXC_IP/admin to configure Grav CMS."
-echo "──────────────────────────────────────────"
+echo "✅ Grav CMS now available at: http://$LXC_IP/admin"
