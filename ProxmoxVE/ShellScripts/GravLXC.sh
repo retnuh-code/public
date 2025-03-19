@@ -32,7 +32,7 @@ CTID=${INPUT_CTID:-$CTID}
 read -p "Enter LXC Hostname (default: $HOSTNAME): " INPUT_HOSTNAME
 HOSTNAME=${INPUT_HOSTNAME:-$HOSTNAME}
 
-read -p "Enter LXC Disk Size in GB (default: $DISK_SIZE) [Example: 10G]: " INPUT_DISK_SIZE
+read -p "Enter LXC Disk Size in GB (default: $DISK_SIZE) [Example: 10]: " INPUT_DISK_SIZE
 DISK_SIZE=${INPUT_DISK_SIZE:-$DISK_SIZE}
 
 read -p "Enter LXC Memory in MB (default: $MEMORY) [Example: 2048]: " INPUT_MEMORY
