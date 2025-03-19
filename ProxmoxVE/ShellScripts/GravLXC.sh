@@ -1,6 +1,6 @@
 #!/bin/bash
 # Proxmox LXC Deployment Script for Grav CMS
-# This script creates a Debian LXC container, installs Grav CMS, and makes it accessible via its local IP.
+# Creates a Debian LXC container, installs Grav CMS, and makes it accessible via its local IP.
 
 set -e  # Exit on error
 
@@ -14,29 +14,42 @@ CORES="2"
 BRIDGE="vmbr0"
 IP="dhcp"
 
-# Get user input for configuration
+# Proxmox Helper Script Style Splash Screen
+clear
+echo "──────────────────────────────────────────"
+echo "    🚀 Proxmox LXC Deployment Script"
+echo "      Installing Grav CMS on Debian"
+echo "──────────────────────────────────────────"
+echo " 📌 This script will create an LXC container,"
+echo "    install Grav CMS, and configure it for local use."
+echo "──────────────────────────────────────────"
+sleep 2
+
+# User Input Handling
 read -p "Enter LXC Container ID (default: $CTID): " INPUT_CTID
 CTID=${INPUT_CTID:-$CTID}
 
 read -p "Enter LXC Hostname (default: $HOSTNAME): " INPUT_HOSTNAME
 HOSTNAME=${INPUT_HOSTNAME:-$HOSTNAME}
 
-read -p "Enter LXC Disk Size (default: $DISK_SIZE): " INPUT_DISK_SIZE
+read -p "Enter LXC Disk Size in GB (default: $DISK_SIZE) [Example: 10G]: " INPUT_DISK_SIZE
 DISK_SIZE=${INPUT_DISK_SIZE:-$DISK_SIZE}
 
-read -p "Enter LXC Memory (default: $MEMORY MB): " INPUT_MEMORY
+read -p "Enter LXC Memory in MB (default: $MEMORY) [Example: 2048]: " INPUT_MEMORY
 MEMORY=${INPUT_MEMORY:-$MEMORY}
 
-read -p "Enter LXC Cores (default: $CORES): " INPUT_CORES
+read -p "Enter LXC Cores (default: $CORES) [Example: 4]: " INPUT_CORES
 CORES=${INPUT_CORES:-$CORES}
 
-read -p "Enter Network Bridge (default: $BRIDGE): " INPUT_BRIDGE
+read -p "Enter Network Bridge (default: $BRIDGE) [Example: vmbr0]: " INPUT_BRIDGE
 BRIDGE=${INPUT_BRIDGE:-$BRIDGE}
 
-read -p "Enter IP Address (default: DHCP): " INPUT_IP
+read -p "Enter IP Address (default: DHCP) [Example: 192.168.1.100/24]: " INPUT_IP
 IP=${INPUT_IP:-$IP}
 
+echo "──────────────────────────────────────────"
 echo "🚀 Creating Debian LXC Container with ID $CTID and Hostname $HOSTNAME..."
+echo "──────────────────────────────────────────"
 
 # Create the container
 pct create $CTID $TEMPLATE \
@@ -65,9 +78,11 @@ while [[ -z "$LXC_IP" ]]; do
 done
 
 echo "✅ Container is running with IP: $LXC_IP"
+echo "──────────────────────────────────────────"
+echo "🚀 Installing Grav CMS inside container..."
+echo "──────────────────────────────────────────"
 
 # Install Grav and Dependencies
-echo "🚀 Installing Grav CMS inside container..."
 pct exec $CTID -- bash -c "
     apt update && apt upgrade -y
     apt install -y php php-fpm php-cli php-gd php-curl php-zip php-mbstring php-xml unzip rsync git wget curl nginx
@@ -107,5 +122,8 @@ EOF
     systemctl restart nginx
 "
 
-echo "✅ Grav CMS is now accessible at http://$LXC_IP"
-
+echo "✅ Grav CMS is now accessible at: http://$LXC_IP"
+echo "──────────────────────────────────────────"
+echo "🎉 Deployment Complete!"
+echo "  Visit: http://$LXC_IP/admin to configure Grav CMS."
+echo "──────────────────────────────────────────"
