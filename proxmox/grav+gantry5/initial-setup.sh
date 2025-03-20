@@ -1,9 +1,9 @@
 #!/bin/bash
-# 🚀 Grav + Gantry5 Automated Setup (Fully Optimized for Speed)
+# 🚀 Grav + Gantry5 Automated Setup (Initial Setup Only, No Plugins)
 set -e  # Exit on error
 
 LOGFILE="/var/log/grav-setup.log"
-echo "🚀 Starting Grav + Gantry5 Optimized Setup" | tee -a $LOGFILE
+echo "🚀 Starting Grav + Gantry5 Initial Setup" | tee -a $LOGFILE
 
 # Ensure the script is run as root
 if [ "$(id -u)" -ne 0 ]; then
@@ -15,7 +15,7 @@ fi
 echo "🔹 Updating system packages..." | tee -a $LOGFILE
 apt update && apt upgrade -y
 
-# Install required dependencies (No Nginx)
+# Install required dependencies
 echo "🔹 Installing required packages..." | tee -a $LOGFILE
 apt install -y php php-fpm php-cli php-gd php-curl php-zip php-mbstring php-xml unzip rsync git wget curl lsb-release apt-transport-https ca-certificates sudo
 
@@ -29,33 +29,14 @@ mv grav-admin grav
 chown -R www-data:www-data /var/www/grav
 chmod -R 775 /var/www/grav
 
-# ✅ Enable Grav Caching
-echo "🔹 Enabling Grav caching..." | tee -a $LOGFILE
-cat <<EOF > /var/www/grav/user/config/system.yaml
-cache:
-  enabled: true
-  check:
-    method: file
-  driver: auto
-  prefix: 'g'
+# Ensure Grav directories exist
+mkdir -p /var/www/grav/user/config
+mkdir -p /var/www/grav/user/pages
 
-assets:
-  css_pipeline: true
-  js_pipeline: true
-  enable_asset_timestamp: true
-EOF
-
-# ✅ Install and Configure Grav Cache Plugin
-echo "🔹 Installing Grav Cache Plugin..." | tee -a $LOGFILE
+# ✅ Initialize Grav
+echo "🔹 Running Grav initialization..." | tee -a $LOGFILE
 cd /var/www/grav
-bin/gpm install cache
-cat <<EOF > /var/www/grav/user/config/plugins/cache.yaml
-enabled: true
-lifetime: 604800
-gzip: true
-clear_images_by_default: false
-cache_enabled: true
-EOF
+sudo -u www-data bin/grav install  # Ensures Grav is fully set up
 
 # ✅ Optimize PHP-FPM for performance
 echo "🔹 Optimizing PHP-FPM settings..." | tee -a $LOGFILE
@@ -71,5 +52,7 @@ sed -i "s/^pm.process_idle_timeout =.*/pm.process_idle_timeout = 10s/" $PHP_FPM_
 echo "🔹 Restarting PHP-FPM..." | tee -a $LOGFILE
 systemctl restart php-fpm
 
-echo "✅ Setup complete! Grav is installed and fully optimized for performance." | tee -a $LOGFILE
-echo "🎯 Cloudflared will handle all traffic routing." | tee -a $LOGFILE
+# ✅ Get the IP address of the server
+LXC_IP=$(hostname -I | awk '{print $1}')
+echo "✅ Setup complete! Grav is installed and ready." | tee -a $LOGFILE
+echo "🎯 Access the Grav Admin Panel at: http://$LXC_IP/admin" | tee -a $LOGFILE
