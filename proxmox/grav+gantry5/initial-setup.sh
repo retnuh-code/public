@@ -1,81 +1,103 @@
 #!/bin/bash
 
-# 🚀 Grav + Gantry5 Setup Script for a Blank Debian LXC
-# Installs all dependencies, configures PHP, and makes site accessible on local IP
-
 set -e  # Exit on error
 
-# **Color Formatting**
-YW=$(echo "\033[33m")
-GN=$(echo "\033[1;92m")
-RD=$(echo "\033[01;31m")
-CL=$(echo "\033[m")
-CM="${GN}✓${CL}"
-CROSS="${RD}✗${CL}"
+echo "🔄 Updating system..."
+sudo apt update && sudo apt upgrade -y
 
-# **Splash Screen**
-clear
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e "    🚀 Grav + Gantry5 Initial Setup"
-echo -e "       Configuring a blank Debian LXC"
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e " 📌 This script will:"
-echo -e "    - Install all required dependencies"
-echo -e "    - Set up PHP and Grav CMS"
-echo -e "    - Make site accessible on local IP"
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-sleep 2
-
-# **Ensure the script is run as root**
-if [[ "$(id -u)" -ne 0 ]]; then
-    echo -e "${CROSS} ${RD}Please run this script as root.${CL}"
-    exit 1
-fi
-
-# **Get Container's Local IP**
+# Get LXC IP dynamically
 LXC_IP=$(hostname -I | awk '{print $1}')
-if [[ -z "$LXC_IP" ]]; then
-    echo -e "${CROSS} ${RD}Could not determine container IP. Please set a static IP.${CL}"
-    exit 1
+echo "🌐 Current LXC IP: $LXC_IP"
+
+echo "🔍 Checking for existing services on port 80..."
+EXISTING_SERVICE=$(sudo lsof -i :80 | awk 'NR==2{print $1}')
+if [[ -n "$EXISTING_SERVICE" ]]; then
+    echo "⚠️ Detected $EXISTING_SERVICE running on port 80. Stopping service..."
+    sudo systemctl stop "$EXISTING_SERVICE"
+    sudo systemctl disable "$EXISTING_SERVICE"
+    sudo apt remove --purge "$EXISTING_SERVICE" -y || true
+    sudo apt autoremove -y
+    echo "✅ $EXISTING_SERVICE has been stopped and removed."
+else
+    echo "✅ No conflicting service found on port 80."
 fi
 
-echo -e "${CM} Using Local IP: $LXC_IP"
+echo "📦 Installing Nginx..."
+sudo apt install -y nginx
+sudo systemctl enable --now nginx
+sudo systemctl restart nginx
+sudo systemctl status nginx --no-pager
 
-# **Install Dependencies**
-echo -e "${YW}Installing system updates and dependencies...${CL}"
-apt update && apt upgrade -y
-apt install -y php php-fpm php-cli php-gd php-curl php-zip php-mbstring php-xml unzip rsync git wget curl lsb-release apt-transport-https ca-certificates sudo
+echo "🔍 Detecting latest available PHP version..."
+PHP_VERSION=$(sudo apt-cache search '^php[0-9]\.[0-9]-fpm$' | awk '{print $1}' | sort -V | tail -n 1 | sed 's/-fpm//')
+echo "✅ Detected PHP version: $PHP_VERSION"
 
-# **Install Grav CMS**
-echo -e "${YW}Installing Grav CMS and Gantry5 Framework...${CL}"
-mkdir -p /var/www
-cd /var/www
-wget https://getgrav.org/download/core/grav-admin/latest -O grav-admin.zip
-unzip grav-admin.zip
-mv grav-admin grav
-cd grav
-bin/gpm install gantry5 -y
-chown -R www-data:www-data /var/www/grav
-chmod -R 775 /var/www/grav
+if [[ -z "$PHP_VERSION" ]]; then
+    echo "⚠️ No PHP version detected, installing PHP 8.2..."
+    PHP_VERSION="php8.2"
+    sudo apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-gd php8.2-curl php8.2-zip php8.2-mbstring php8.2-xml
+else
+    echo "📦 Installing required PHP extensions for $PHP_VERSION..."
+    sudo apt install -y "$PHP_VERSION" "$PHP_VERSION-fpm" "$PHP_VERSION-cli" "$PHP_VERSION-gd" "$PHP_VERSION-curl" "$PHP_VERSION-zip" "$PHP_VERSION-mbstring" "$PHP_VERSION-xml"
+fi
 
-# ✅ **Optimize PHP-FPM for performance**
-echo -e "${YW}Optimizing PHP-FPM settings...${CL}"
-PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
-PHP_FPM_CONF="/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
-sed -i "s/^pm.max_children =.*/pm.max_children = 50/" $PHP_FPM_CONF
-sed -i "s/^pm.start_servers =.*/pm.start_servers = 10/" $PHP_FPM_CONF
-sed -i "s/^pm.min_spare_servers =.*/pm.min_spare_servers = 5/" $PHP_FPM_CONF
-sed -i "s/^pm.max_spare_servers =.*/pm.max_spare_servers = 20/" $PHP_FPM_CONF
-sed -i "s/^pm.process_idle_timeout =.*/pm.process_idle_timeout = 10s/" $PHP_FPM_CONF
+echo "🚀 Enabling and starting PHP-FPM..."
+PHP_FPM_SERVICE="$PHP_VERSION-fpm"
+sudo systemctl enable --now "$PHP_FPM_SERVICE"
+sudo systemctl restart "$PHP_FPM_SERVICE"
+sudo systemctl status "$PHP_FPM_SERVICE" --no-pager
 
-# ✅ Restart PHP-FPM
-echo -e "${YW}Restarting PHP-FPM...${CL}"
-systemctl restart php-fpm
+echo "⬇️ Installing Grav CMS..."
+cd /var/www/
+sudo rm -rf grav  # Ensure no old Grav installation is present
+sudo mkdir -p /var/www/grav
+sudo wget -O grav-admin.zip https://getgrav.org/download/core/grav-admin/latest
+sudo unzip grav-admin.zip -d /var/www/
+sudo mv /var/www/grav-admin/* /var/www/grav/
+sudo mv /var/www/grav-admin/.* /var/www/grav/ 2>/dev/null || true
+sudo rm -rf /var/www/grav-admin grav-admin.zip
 
-# **Display Final Info**
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e " 🎉 Setup Complete!"
-echo -e " 📌 Grav + Gantry5 is now available at:"
-echo -e "    ➤ Local Access: ${GN}http://$LXC_IP/admin${CL}"
-echo -e "    ➤ You can now configure Cloudflared to expose this instance!"
-echo -e "${YW}──────────────────────────────────────────────${CL}"
+echo "🔑 Setting file permissions for Grav..."
+sudo chown -R www-data:www-data /var/www/grav
+sudo chmod -R 775 /var/www/grav
+
+echo "⚙️ Configuring Nginx for Grav..."
+sudo tee /etc/nginx/sites-available/grav > /dev/null <<EOF
+server {
+    listen 80;
+    server_name $LXC_IP;
+
+    root /var/www/grav;
+    index index.php index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php\$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/$PHP_VERSION-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~* /\. {
+        deny all;
+    }
+}
+EOF
+
+echo "🔗 Enabling Grav site in Nginx..."
+sudo ln -s /etc/nginx/sites-available/grav /etc/nginx/sites-enabled/ 2>/dev/null || true
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl restart nginx
+
+echo "🛠️ Testing PHP processing..."
+echo "<?php phpinfo(); ?>" | sudo tee /var/www/grav/phpinfo.php
+
+echo "🧹 Clearing Grav cache..."
+cd /var/www/grav
+sudo -u www-data php bin/grav clearcache
+
+echo "🎉 Grav CMS setup complete!"
+echo "🌍 Access your site at: http://$LXC_IP/admin"
