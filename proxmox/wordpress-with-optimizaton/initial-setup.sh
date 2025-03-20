@@ -22,8 +22,15 @@ if [[ "$(id -u)" -ne 0 ]]; then
     exit 1
 fi
 
-# Prompt for WordPress details
-echo -e "${YW}Please enter your WordPress site details:${CL}"
+# Prompt for Database details
+echo -e "${YW}Enter your WordPress database details:${CL}"
+read -p "📂 Database Name: " DB_NAME
+read -p "👤 Database User: " DB_USER
+read -sp "🔑 Database Password: " DB_PASS
+echo ""
+
+# Prompt for WordPress site details
+echo -e "${YW}Enter your WordPress site details:${CL}"
 read -p "🌍 Site Title: " WP_SITE_TITLE
 read -p "🔗 Site URL (Leave blank for local IP): " WP_SITE_URL
 WP_SITE_URL=${WP_SITE_URL:-"http://$(hostname -I | awk '{print $1}')"}  # Default to local IP if left blank
@@ -41,10 +48,6 @@ apt update && apt upgrade -y
 apt install -y nginx mariadb-server php php-fpm php-cli php-mysql php-curl php-xml php-mbstring unzip wget curl redis-server
 
 # MariaDB Setup
-DB_NAME="wordpress"
-DB_USER="wp_user"
-DB_PASS="StrongRandomPassword"
-
 echo -e "${YW}Setting up MariaDB database for WordPress...${CL}"
 mysql -e "CREATE DATABASE ${DB_NAME};"
 mysql -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
@@ -145,4 +148,6 @@ echo -e " 📌 WordPress is now available at:"
 echo -e "    ➤ Site URL: ${GN}$WP_SITE_URL${CL}/wp-admin"
 echo -e " 🛠️ Admin Username: ${GN}$WP_ADMIN_USER${CL}"
 echo -e " 🛠️ Admin Email: ${GN}$WP_ADMIN_EMAIL${CL}"
+echo -e " 📂 Database Name: ${GN}$DB_NAME${CL}"
+echo -e " 👤 Database User: ${GN}$DB_USER${CL}"
 echo -e "${YW}──────────────────────────────────────${CL}"
