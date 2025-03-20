@@ -1,109 +1,166 @@
-create a debian lxc, I recommend community scripts version since it's easy and I am lazy: https://community-scripts.github.io/ProxmoxVE/scripts?id=debian 
+# 🚀 Grav CMS + Cloudflare Tunnel + Load Balancer Setup Guide
 
-run initial-setup.sh:
+## **1️⃣ Create a Debian LXC Instance**
+I recommend using the **Community Scripts** version since it's easy and I'm lazy:  
+👉 [Proxmox Community Scripts - Debian LXC](https://community-scripts.github.io/ProxmoxVE/scripts?id=debian)
+
+---
+
+## **2️⃣ Run the Initial Setup Script**
+Once your Debian LXC is up and running, execute the following command:
+
+```bash
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/retnuh-code/public/main/proxmox/grav+gantry5/initial-setup.sh)"
+```
 
-Let it run, takes a couple min to run through all the install prerequisties and configurations 
-it'll tkae longer if your lxc isn't up to date
-Will come back with your local ip to configure the site. 
-log into that url it posts (ex 10.1.1.10/admin) sign up for the admin account 
-then goto just the ip without the /admin (ex 10.1.1.10) and confirm the site loads properly 
-if it doesn't show the ip then type in 'ip addr' and it should show your IP
+🕐 **This will take a few minutes** as it installs all prerequisites and configurations.  
+⏳ If your LXC is not updated, it might take longer.  
 
+✅ **Once completed, it will display your local IP** to configure the site.
 
-Now go into cloud flare > Zero Trust > Networks > Tunnels 
-Make a new tunnel, name it, then hit create 
-now hit the Debian tab and copy the left command block "If you don’t have cloudflared installed on your machine:" and paste it into the lxc 
+---
 
-output should be similar to: 
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+## **3️⃣ Log into Grav**
+1. Open a browser and go to the **URL provided** (e.g., `http://10.1.1.10/admin`).
+2. **Create an admin account**.
+3. **Test your site** by visiting `http://10.1.1.10/` and confirming it loads properly.
+4. If the script **doesn't show the IP**, run:
+
+   ```bash
+   ip addr
+   ```
+
+   Look for your **LXC's IP address** and use that.
+
+---
+
+## **4️⃣ Set Up a Cloudflare Tunnel**
+1. Go to **Cloudflare** > **Zero Trust** > **Networks** > **Tunnels**.
+2. Click **Create a Tunnel**, **name it**, then hit **Create**.
+3. Select the **Debian** tab and copy the **left command block** under:  
+   **"If you don’t have cloudflared installed on your machine:"**  
+   Paste that command into your **LXC console** and run it.
+
+### **Expected Output:**
+```
 100 17.6M  100 17.6M    0     0  31.8M      0 --:--:-- --:--:-- --:--:-- 31.8M
 Selecting previously unselected package cloudflared.
-(Reading database ... 21129 files and directories currently installed.)
-Preparing to unpack cloudflared.deb ...
 Unpacking cloudflared (2025.2.1) ...
 Setting up cloudflared (2025.2.1) ...
-Processing triggers for man-db (2.11.2-2) ...
 2025-03-20T16:08:25Z INF Using Systemd
 2025-03-20T16:08:29Z INF Linux service for cloudflared installed successfully
+```
 
+4. **Back in Cloudflare**, at the bottom, check the **Connectors section**.  
+   It should show **"Connected"** after **a minute or two**.
 
-back in cloudflare at the bottom it'll show connectors and should show connected after a min or two 
-![image](https://github.com/user-attachments/assets/030c340f-4107-46f3-a0a1-23827d94bd0e)
+   ![Cloudflare Tunnel Connected](https://github.com/user-attachments/assets/030c340f-4107-46f3-a0a1-23827d94bd0e)
 
-hit next in the bottom right
-add in your route to your website
+---
 
-Input the subdomain (!! If you are doing this for your main production site, you still need to use 2 seperate sub domains. It'll reflect on your domain.com / www.domain.com site once we do the load balancer)
-Domain sleect your domain 
-Service Type is HTTP
-URL is the ip address of the lxc
+## **5️⃣ Add Your Website Route**
+1. Click **Next** in Cloudflare.
+2. Add your route:
+   - **Subdomain:** Enter the subdomain (e.g., `testing`).
+   - **Domain:** Select your domain.
+   - **Service Type:** HTTP.
+   - **URL:** Enter the **IP address of your LXC**.
 
-then save then goto the url you made (ie in this example it would be testing.domain.com) and should show the test "Say Hello to Grav!" page or whatever pages you made 
+3. Click **Save**, then go to the **URL you made** (e.g., `http://testing.domain.com`).  
+   ✅ You should see the **"Say Hello to Grav!"** page or whatever pages you created.
 
-pro tip, if you're just setting this up in one fell swoop, edit the home page and just add SERVER2 right after where it says "Say Hello to Grav!" so you know it worked. 
+💡 **Pro Tip:** If you're setting this up in one go, **edit the home page** and add `"SERVER2"` next to `"Say Hello to Grav!"` so you know which server is responding.
 
-Now for the fun part. Go back to cloudflare homepage (just click the logo in top left)  
-select the domain you're working with 
-click Traffic > Load Balancing then Enable Load Balancing
-Edit your settings to what you're using (the default settings for 2 endpoints, 60sec checks, etc is $5/mo) 
+---
 
-Select Create Load Balancer
-enter your hostname for your website. You can edit this so if you want to do a test one then put whatever you want here. -- if this is for your main domain.com site then remove the beginning . and just have your domain.com there. we will deal with www later
-hit next
-Create a pool for each endpoint. don't put both endpoints in 1 pool
-For the first pool:
-Name: I just name mine my tunnel name so: tunnelname-pool-primary
-Leave steering to random it does not matter since we are only using 1 endpoint per pool
+## **6️⃣ Enable Cloudflare Load Balancing**
+### **🛠️ Create the Load Balancer**
+1. Go back to the **Cloudflare homepage** (click the Cloudflare logo in the top left).
+2. Select the **domain you're working with**.
+3. Navigate to **Traffic > Load Balancing**.
+4. Click **Enable Load Balancing** (**$5/month** for two endpoints).
+5. Click **Create Load Balancer**.
+6. Enter the **hostname** for your website:
+   - If you want to **test first**, use a test subdomain.
+   - If this is for your **main site**, just enter `domain.com` (without leading `.`).
 
-Now the fun part, your endpoints.
-endpoint name: doesn't matter put in your lxc name or something identifiable 
-Endpoint Address: this is interesting; open cloudflare in a new tab, go into zero trust > networks > tunnels > select your tunnel name so it shows the info in the right side. Copy the TUNNEL ID. paste that ID into your Endpoint address and add .cfargotunnel.com to the end
-So all in all your endpoint address should look like this: 12345abc-12ab-ab34-1234-12cd34ab90ab.cfargotunnel.com
-Weight 1
-click Add Host Header 
-Header value is that subdomain you created in the tunnel (so like if you used Primary then it'd be primary.domain.com)
-Remove the other endpoint
-Save
+7. Click **Next**.
 
-For the second pool: 
-Name: I just name mine my tunnel name so: tunnelname-pool-secondary
-Leave steering to random it does not matter since we are only using 1 endpoint per pool
+---
 
-endpoints: 
-endpoint name: name it the second lxc name or something identifiable
-Endpoint Address: the same endpoint address from the first pool endpoint 12345abc-12ab-ab34-1234-12cd34ab90ab.cfargotunnel.com
-Weight 1
-click Add Host Header 
-Header value is that subdomain you created in the tunnel (so like if you used Secondary for the second one then it'd be secondary.domain.com)
-Remove the other endpoint
-Save
+## **7️⃣ Configure the Load Balancer Pools**
+### **📌 First Pool (Primary)**
+- **Name:** `tunnelname-pool-primary`
+- **Steering:** **Random** (default).
+- **Endpoints:**
+  - **Endpoint Name:** Name it something identifiable (e.g., `PrimaryLXC`).
+  - **Endpoint Address:**  
+    - Open Cloudflare **Zero Trust > Networks > Tunnels**.
+    - Select your tunnel and copy the **TUNNEL ID**.
+    - Paste the **TUNNEL ID** and add `.cfargotunnel.com`.
+    - Example: `12345abc-12ab-ab34-1234-12cd34ab90ab.cfargotunnel.com`
+  - **Weight:** `1`.
+  - **Add Host Header:**  
+    - **Header value:** Your **subdomain** (e.g., `primary.domain.com`).
 
-hit Next to goto the monitor page 
-select Attach Monitor on either pool then select Create a Monitor
-in the Name put PING leave the rest as default and hit save
-Next you can input a notification email address if you'd like, otherwise hit Save again
-on your other pool listed, select Attach monitor, then from the drop down select the GET or PING you just made, hit add, then enter an email or just hit save
-wait a minute or two (yes 60-120 seconds) to make sure it comes back healthy on both pools then hit next 
-If the second pool comes back Critical or jsut doesn't update, you can remove the monitor and then readd it. sometimes cloudflare is too slow with the polling. (I normally just hit Next and it sorts itself out. If it doesn't at the end, go back and edit it and just make a new monitor and name it PING2)
-NOTE: if you didn't finish the admin user creation, the healthchecks will fail.
+- **Remove the extra endpoint**, then **Save**.
 
-Traffic steering; if you're cheap like me, you're not paying for the extra features so I select least oustanding requests that way it'll bounce between the two servers during testing, and hit next 
+### **📌 Second Pool (Secondary)**
+- **Name:** `tunnelname-pool-secondary`
+- **Steering:** **Random**.
+- **Endpoints:**
+  - **Endpoint Name:** Something identifiable (e.g., `SecondaryLXC`).
+  - **Endpoint Address:** **Same TUNNEL ID** as the primary pool.
+  - **Weight:** `1`.
+  - **Add Host Header:**  
+    - **Header value:** The **secondary subdomain** (`secondary.domain.com`).
 
-I don't use custom rules so just hit next 
+- **Remove the extra endpoint**, then **Save**.
 
-then hit save and deploy 
+---
 
-Now, hopefully you edited your secondary server to add that Sever2 part because that's how you'll test if your stuff is working. 
+## **8️⃣ Set Up Health Checks**
+1. Click **Next** to go to the **Monitor Page**.
+2. Select **Attach Monitor** on either pool.
+3. Click **Create a Monitor**, set:
+   - **Name:** `PING`
+   - **Leave the rest as default**, then click **Save**.
+4. Optionally input a **email address** for notifications, otherise hit save
+5. Attach the **same monitor** to the **second pool**.
 
-Now goto the domain you entered in the loadbalancer hostname, it should show your website! 
+⏳ **Wait 1-2 minutes** for the status to update.  
+- **If a pool shows "Critical"**, remove the monitor and re-add it.
+- If needed, create a **new monitor** and name it `PING2`.
 
-If you are using this for your main domain.com, you have to add a www. record
-Under your DNS records, make a new CNAME record. 
-Name is www
-target is @ (or put in your domain.com, same thing)
-hit Save
-Test by going to www.domain.com
+📌 **Note:** If you **haven't finished the Grav admin setup**, the health checks **will fail**. Go back to your primary.domain.com/admin and create the initial user.
+
+---
+
+## **9️⃣ Finalizing the Load Balancer**
+1. **Traffic Steering:**  
+   - If you **don't have advanced Cloudflare features**, select **Least Outstanding Requests**.
+2. Click **Next** → **Next** to skip over the Custom Rules → **Save and Deploy**.
+
+### **✅ Test the Load Balancer**
+1. Open your domain.
+2. If you **modified the homepage** on your secondary.domain.com with `"SERVER2"`, refresh the page multiple times to confirm it's switching servers.
+
+📌 **Note:** You may have to refresh a bunch. Dont just spam it, let the page load everytime. 
+
+---
+
+## **🔗 Optional: Add a `www.` Record**
+If using this for your **main domain**, you need a `www.` record:
+1. Go to **Cloudflare Dashboard > DNS**.
+2. Click **Add Record**:
+   - **Type:** `CNAME`
+   - **Name:** `www`
+   - **Target:** `@` (or `yourdomain.com`)
+3. Click **Save**.
+4. Test by visiting `www.yourdomain.com`.
+
+---
+
+## **🎉 Done! Your Site is Now Load-Balanced with Cloudflare**
+Now your **Grav CMS is behind a Cloudflare Tunnel with Load Balancing** for redundancy! 🚀  
+If you encounter any issues, **check Cloudflare logs, Nginx logs, and health check statuses**.
