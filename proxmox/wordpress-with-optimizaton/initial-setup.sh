@@ -22,8 +22,14 @@ if [[ "$(id -u)" -ne 0 ]]; then
     exit 1
 fi
 
-# Prompt for WordPress admin details
-echo -e "${YW}Please enter your WordPress admin credentials:${CL}"
+# Prompt for WordPress details
+echo -e "${YW}Please enter your WordPress site details:${CL}"
+read -p "🌍 Site Title: " WP_SITE_TITLE
+read -p "🔗 Site URL (Leave blank for local IP): " WP_SITE_URL
+WP_SITE_URL=${WP_SITE_URL:-"http://$(hostname -I | awk '{print $1}')"}  # Default to local IP if left blank
+
+# Prompt for WordPress admin credentials
+echo -e "${YW}Enter your WordPress admin details:${CL}"
 read -p "👤 Admin Username: " WP_ADMIN_USER
 read -sp "🔑 Admin Password: " WP_ADMIN_PASS
 echo ""
@@ -77,8 +83,8 @@ sudo -u www-data bash -c "cd /var/www/html && $wp_cli config create --dbname='${
 # Install WordPress Core with User Input
 echo -e "${YW}Running WordPress core installation...${CL}"
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html core install \
-    --url="http://$(hostname -I | awk '{print $1}')" \
-    --title="Coastal Tech Pros" \
+    --url="$WP_SITE_URL" \
+    --title="$WP_SITE_TITLE" \
     --admin_user="$WP_ADMIN_USER" \
     --admin_password="$WP_ADMIN_PASS" \
     --admin_email="$WP_ADMIN_EMAIL"
@@ -86,7 +92,6 @@ sudo -u www-data /usr/local/bin/wp --path=/var/www/html core install \
 # Configure WordPress Settings
 echo -e "${YW}Configuring WordPress settings...${CL}"
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html option update permalink_structure "/%postname%/"
-sudo -u www-data /usr/local/bin/wp --path=/var/www/html option update blogdescription "Coastal Tech Pros - IT Solutions"
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html rewrite flush
 
 # Configure NGINX
@@ -94,7 +99,7 @@ echo -e "${YW}Configuring NGINX for WordPress...${CL}"
 cat <<EOF > /etc/nginx/sites-available/wordpress
 server {
     listen 80;
-    server_name localhost $(hostname -I | awk '{print $1}');
+    server_name $(echo $WP_SITE_URL | awk -F/ '{print $3}') localhost;
     root /var/www/html;
     index index.php index.html;
 
@@ -137,7 +142,7 @@ sudo -u www-data /usr/local/bin/wp --path=/var/www/html option update comment_re
 echo -e "${YW}──────────────────────────────────────${CL}"
 echo -e " 🎉 Setup Complete!"
 echo -e " 📌 WordPress is now available at:"
-echo -e "    ➤ Local Access: ${GN}http://$(hostname -I | awk '{print $1}')/wp-admin${CL}"
+echo -e "    ➤ Site URL: ${GN}$WP_SITE_URL${CL}/wp-admin"
 echo -e " 🛠️ Admin Username: ${GN}$WP_ADMIN_USER${CL}"
 echo -e " 🛠️ Admin Email: ${GN}$WP_ADMIN_EMAIL${CL}"
 echo -e "${YW}──────────────────────────────────────${CL}"
