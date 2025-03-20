@@ -1,61 +1,74 @@
 #!/bin/bash
-
-# Cloudflared Installation & Private Network IP Setup for LXC
-# Uses Cloudflare's official install method and assigns an IP to the LXC.
-
+# 🚀 Cloudflared Tunnel Setup (No IP Routing)
 set -e  # Exit on error
 
-# **Color Formatting**
-YW=$(echo "\033[33m")
-GN=$(echo "\033[1;92m")
-RD=$(echo "\033[01;31m")
-CL=$(echo "\033[m")
-CM="${GN}✓${CL}"
-CROSS="${RD}✗${CL}"
+LOGFILE="/var/log/cloudflared-setup.log"
+echo "🚀 Starting Cloudflared Tunnel Setup..." | tee -a $LOGFILE
 
-# **Splash Screen**
-clear
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e "    🚀 Cloudflared Setup for LXC"
-echo -e "       Using Cloudflare's Official Method"
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e " 📌 This script will:"
-echo -e "    - Install Cloudflared via Cloudflare's official method"
-echo -e "    - Register the tunnel using the provided token"
-echo -e "    - Assign a Private IP from the Cloudflare network"
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-sleep 2
-
-# **Ensure the script is run as root**
-if [[ "$(id -u)" -ne 0 ]]; then
-    echo -e "${CROSS} ${RD}Please run this script as root.${CL}"
+# Ensure the script is run as root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "❌ This script must be run as root." | tee -a $LOGFILE
     exit 1
 fi
 
-# **User Input**
-read -p "Enter Cloudflare Tunnel Token: " TUNNEL_TOKEN
-read -p "Enter Private IP to Assign (must be within 172.16.1.10/29): " PRIVATE_IP
+# Prompt for Cloudflare Tunnel Name
+read -p "Enter Cloudflare Tunnel Name (must exist): " TUNNEL_NAME
 
-# **Install Cloudflared Using Cloudflare's Official Method**
-echo -e "${YW}Installing Cloudflared...${CL}"
+# Install Cloudflared
+echo "🔹 Installing Cloudflared..." | tee -a $LOGFILE
 curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 dpkg -i cloudflared.deb
 
-# **Register Tunnel with Cloudflare**
-echo -e "${YW}Registering Cloudflared Tunnel...${CL}"
-cloudflared service install "$TUNNEL_TOKEN"
+# Authenticate Cloudflared
+echo "🔹 Authenticating Cloudflared..."
+cloudflared tunnel login
+echo "✅ Cloudflared authenticated!"
 
-# **Ensure Cloudflared Service is Running**
+# Check if Tunnel exists
+echo "🔹 Checking if Tunnel '$TUNNEL_NAME' exists..."
+TUNNEL_ID=$(cloudflared tunnel list | grep "$TUNNEL_NAME" | awk '{print $1}')
+
+if [[ -z "$TUNNEL_ID" ]]; then
+    echo "❌ Tunnel '$TUNNEL_NAME' not found. Please create it manually in Cloudflare."
+    exit 1
+else
+    echo "✅ Tunnel '$TUNNEL_NAME' found. ID: $TUNNEL_ID"
+fi
+
+# Configure Cloudflared service
+echo "🔹 Configuring Cloudflared system service..."
+mkdir -p /etc/cloudflared
+cloudflared tunnel token $TUNNEL_ID > /etc/cloudflared/$TUNNEL_NAME.json
+
+cat <<EOF > /etc/cloudflared/config.yml
+tunnel: $TUNNEL_ID
+credentials-file: /etc/cloudflared/$TUNNEL_NAME.json
+
+ingress:
+  - hostname: YOUR_DOMAIN_HERE
+    service: http://127.0.0.1:8000  # Change port if needed
+  - service: http_status:404
+EOF
+
+# Create Systemd Service
+echo "🔹 Creating Cloudflared systemd service..."
+cat <<EOF > /etc/systemd/system/cloudflared.service
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/cloudflared tunnel run --config /etc/cloudflared/config.yml
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and restart service
+systemctl daemon-reload
 systemctl enable cloudflared
 systemctl restart cloudflared
 
-# **Assign Private IP**
-echo -e "${YW}Assigning Private IP: $PRIVATE_IP...${CL}"
-ip addr add $PRIVATE_IP dev eth0
-
-# **Final Confirmation**
-echo -e "${YW}──────────────────────────────────────────────${CL}"
-echo -e " 🎉 Setup Complete!"
-echo -e " 📌 Cloudflared is now running and registered."
-echo -e "    ➤ Private IP Assigned: ${GN}$PRIVATE_IP${CL}"
-echo -e "${YW}──────────────────────────────────────────────${CL}"
+echo "✅ Cloudflared is now running and linked to the Cloudflare Tunnel." | tee -a $LOGFILE
