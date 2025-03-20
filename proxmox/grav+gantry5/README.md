@@ -110,7 +110,7 @@ Setting up cloudflared (2025.2.1) ...
 - **Steering:** **Random**.
 - **Endpoints:**
   - **Endpoint Name:** Something identifiable (e.g., `SecondaryLXC`).
-  - **Endpoint Address:** **Same TUNNEL ID** as the primary pool.
+  - **Endpoint Address:** **Same Endpoint Address** as the primary pool.
   - **Weight:** `1`.
   - **Add Host Header:**  
     - **Header value:** The **secondary subdomain** (`secondary.domain.com`).
