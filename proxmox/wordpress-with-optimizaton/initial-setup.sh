@@ -81,33 +81,36 @@ wp_cli="/usr/local/bin/wp"
 wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O $wp_cli
 chmod +x $wp_cli
 
+# **Now Explicitly Set WP Path for All Commands**
+WP_PATH="--path=/var/www/html"
+
 # Install & activate essential plugins
-sudo -u www-data $wp_cli plugin install elementor wp-rocket shortpixel-image-optimizer redis-cache rank-math-seo --activate
-sudo -u www-data $wp_cli option update permalink_structure "/%postname%/"
-sudo -u www-data $wp_cli option update blogdescription "Coastal Tech Pros - IT Solutions"
-sudo -u www-data $wp_cli rewrite flush
+sudo -u www-data $wp_cli $WP_PATH plugin install elementor wp-rocket shortpixel-image-optimizer redis-cache rank-math-seo --activate
+sudo -u www-data $wp_cli $WP_PATH option update permalink_structure "/%postname%/"
+sudo -u www-data $wp_cli $WP_PATH option update blogdescription "Coastal Tech Pros - IT Solutions"
+sudo -u www-data $wp_cli $WP_PATH rewrite flush
 
 # 🟢 Step 6: Install & Configure AI SEO Automation
 echo "Installing AI-powered SEO tools..."
-sudo -u www-data $wp_cli plugin install aioseo --activate
-sudo -u www-data $wp_cli plugin install link-whisper --activate
+sudo -u www-data $wp_cli $WP_PATH plugin install aioseo --activate
+sudo -u www-data $wp_cli $WP_PATH plugin install link-whisper --activate
 
 # 🟢 Step 7: Google Analytics Integration
 echo "Setting up Google Analytics..."
 GA_TRACKING_ID="UA-XXXXXXXXX-X"
-sudo -u www-data $wp_cli option update rank_math_google_analytics "${GA_TRACKING_ID}"
+sudo -u www-data $wp_cli $WP_PATH option update rank_math_google_analytics "${GA_TRACKING_ID}"
 
 # 🟢 Step 8: Force Elementor for Editing (Disable Default Editor)
 echo "Disabling Gutenberg and forcing Elementor..."
-sudo -u www-data $wp_cli plugin install disable-gutenberg --activate
-sudo -u www-data $wp_cli option update classic-editor-replace "block"
+sudo -u www-data $wp_cli $WP_PATH plugin install disable-gutenberg --activate
+sudo -u www-data $wp_cli $WP_PATH option update classic-editor-replace "block"
 
 # 🟢 Step 9: Secure WordPress
 echo "Securing WordPress..."
-sudo -u www-data $wp_cli plugin install wordfence --activate
-sudo -u www-data $wp_cli option update users_can_register 0
-sudo -u www-data $wp_cli option update comment_registration 1
-sudo -u www-data $wp_cli option update uploads_use_yearmonth_folders 0
+sudo -u www-data $wp_cli $WP_PATH plugin install wordfence --activate
+sudo -u www-data $wp_cli $WP_PATH option update users_can_register 0
+sudo -u www-data $wp_cli $WP_PATH option update comment_registration 1
+sudo -u www-data $wp_cli $WP_PATH option update uploads_use_yearmonth_folders 0
 
 # Configure Fail2Ban for brute-force protection
 cat <<EOF > /etc/fail2ban/jail.local
@@ -132,4 +135,3 @@ rm mycron
 # 🟢 Final Steps
 echo "✅ WordPress installation complete!"
 echo "Your site is available at: http://${LXC_IP}/wp-admin"
-echo "Configure Cloudflare Tunnel & Load Balancer manually."
