@@ -22,6 +22,13 @@ if [[ "$(id -u)" -ne 0 ]]; then
     exit 1
 fi
 
+# Prompt for WordPress admin details
+echo -e "${YW}Please enter your WordPress admin credentials:${CL}"
+read -p "👤 Admin Username: " WP_ADMIN_USER
+read -sp "🔑 Admin Password: " WP_ADMIN_PASS
+echo ""
+read -p "📧 Admin Email: " WP_ADMIN_EMAIL
+
 # System update & install dependencies
 echo -e "${YW}Updating system and installing dependencies...${CL}"
 apt update && apt upgrade -y
@@ -50,6 +57,12 @@ echo -e "${YW}Setting correct file permissions...${CL}"
 chown -R www-data:www-data /var/www/html
 chmod -R 755 /var/www/html
 
+# Fix WP-CLI permission issue
+echo -e "${YW}Fixing WP-CLI permissions...${CL}"
+mkdir -p /var/www/.wp-cli/cache/
+chown -R www-data:www-data /var/www/.wp-cli
+chmod -R 755 /var/www/.wp-cli
+
 # Install & Verify WP-CLI
 echo -e "${YW}Installing WP-CLI...${CL}"
 wp_cli="/usr/local/bin/wp"
@@ -61,14 +74,14 @@ sudo -u www-data $wp_cli --version
 echo -e "${YW}Generating wp-config.php...${CL}"
 sudo -u www-data bash -c "cd /var/www/html && $wp_cli config create --dbname='${DB_NAME}' --dbuser='${DB_USER}' --dbpass='${DB_PASS}' --dbhost='localhost' --skip-check"
 
-# Install WordPress Core
+# Install WordPress Core with User Input
 echo -e "${YW}Running WordPress core installation...${CL}"
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html core install \
     --url="http://$(hostname -I | awk '{print $1}')" \
     --title="Coastal Tech Pros" \
-    --admin_user="admin" \
-    --admin_password="StrongPassword123" \
-    --admin_email="admin@example.com"
+    --admin_user="$WP_ADMIN_USER" \
+    --admin_password="$WP_ADMIN_PASS" \
+    --admin_email="$WP_ADMIN_EMAIL"
 
 # Configure WordPress Settings
 echo -e "${YW}Configuring WordPress settings...${CL}"
@@ -107,7 +120,7 @@ ln -s /etc/nginx/sites-available/wordpress /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 systemctl restart nginx php8.2-fpm
 
-# Install Essential Plugins
+# Install Essential Plugins (with fixed permissions)
 echo -e "${YW}Installing essential WordPress plugins...${CL}"
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html plugin install elementor --activate
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html plugin install shortpixel-image-optimiser --activate
@@ -125,4 +138,6 @@ echo -e "${YW}──────────────────────
 echo -e " 🎉 Setup Complete!"
 echo -e " 📌 WordPress is now available at:"
 echo -e "    ➤ Local Access: ${GN}http://$(hostname -I | awk '{print $1}')/wp-admin${CL}"
+echo -e " 🛠️ Admin Username: ${GN}$WP_ADMIN_USER${CL}"
+echo -e " 🛠️ Admin Email: ${GN}$WP_ADMIN_EMAIL${CL}"
 echo -e "${YW}──────────────────────────────────────${CL}"
