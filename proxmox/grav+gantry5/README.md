@@ -17,10 +17,9 @@ bash -c "$(wget -qLO - https://raw.githubusercontent.com/retnuh-code/public/main
 It prompts for your cloudflare tunnel token. this is found in your Zero Trust > Network > Tunnel > select your tunnel or make one > then in the overview tab ( or the next page if you're making a new one) it will have the install commands. 
 Select the Debian option at the top, and copy the install command and paste it into notepad or somehting to extract your token 
 Should look like this: 
+
 curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && 
-
 sudo dpkg -i cloudflared.deb && 
-
 sudo cloudflared service install REALLY-LONG-STRING-OF-STUFF
 
 That 'REALLY-LONG-STRING-OF-STUFF' is your token. Copy that and paste into your terminal window (may need to right click and paste as plain text depending on what you're using) 
