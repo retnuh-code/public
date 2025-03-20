@@ -3,12 +3,11 @@ run initial-setup.sh
 
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/retnuh-code/public/main/proxmox/grav+gantry5/initial-setup.sh)"
 
-Enter site domain name: www.domain.com
 Let it run, takes a couple min to run through all the install prerequisties and configurations 
 Will come back with your local ip to configure the site. 
 log into that url it posts (ex 10.1.1.10/admin) sign up for the admin account 
 then goto just the ip without the /admin (ex 10.1.1.10) and confirm the site loads properly 
-
+if it doesn't show the ip then type in 'ip addr' and it should show your IP
 
 if it's all good, then run the setup-cloudflared.sh 
 
