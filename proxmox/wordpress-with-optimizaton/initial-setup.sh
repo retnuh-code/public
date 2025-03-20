@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🚀 WordPress + Cloudflare Tunnel + AI SEO Auto-Installer for Debian LXC
-# Automates WordPress setup, performance tuning, security, SEO, and Cloudflare integration
+# 🚀 WordPress Auto-Installer for Debian LXC
+# Automates WordPress setup, performance tuning, security, and SEO
 
 set -e  # Stop script on errors
 
@@ -11,7 +11,7 @@ LXC_IP=$(hostname -I | awk '{print $1}')
 # 🟢 Step 1: Install Required Software
 echo "Updating system and installing dependencies..."
 apt update && apt upgrade -y
-apt install -y nginx mariadb-server php php-fpm php-cli php-mysql php-curl php-xml php-mbstring unzip wget curl redis-server cloudflared
+apt install -y nginx mariadb-server php php-fpm php-cli php-mysql php-curl php-xml php-mbstring unzip wget curl redis-server
 
 # 🟢 Step 2: Configure Database
 DB_NAME="wordpress"
@@ -120,15 +120,7 @@ bantime = 3600
 EOF
 systemctl restart fail2ban
 
-# 🟢 Step 10: Set Up Cloudflare Tunnel (Automatically Connects to Load Balancer)
-echo "Setting up Cloudflare Tunnel..."
-cloudflared service install
-cloudflared tunnel create wordpress-tunnel
-cloudflared tunnel route ip ${LXC_IP}/32
-cloudflared tunnel ingress-rule add wordpress-tunnel http://${LXC_IP}
-systemctl restart cloudflared
-
-# 🟢 Step 11: Set Up Automatic Backups & Database Optimization
+# 🟢 Step 10: Set Up Automatic Backups & Database Optimization
 echo "Setting up automatic backups and database optimizations..."
 mkdir -p /var/backups/wordpress
 crontab -l > mycron
@@ -140,4 +132,4 @@ rm mycron
 # 🟢 Final Steps
 echo "✅ WordPress installation complete!"
 echo "Your site is available at: http://${LXC_IP}/wp-admin"
-echo "Cloudflare Tunnel set up - configure domain in Cloudflare Load Balancer."
+echo "Configure Cloudflare Tunnel & Load Balancer manually."
