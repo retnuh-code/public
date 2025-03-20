@@ -1,5 +1,5 @@
 #!/bin/bash
-# 🚀 Cloudflared Tunnel Setup (No IP Routing)
+# 🚀 Cloudflared Tunnel Setup (Optimized)
 set -e  # Exit on error
 
 LOGFILE="/var/log/cloudflared-setup.log"
@@ -46,8 +46,14 @@ credentials-file: /etc/cloudflared/$TUNNEL_NAME.json
 
 ingress:
   - hostname: YOUR_DOMAIN_HERE
-    service: http://127.0.0.1:8000  # Change port if needed
+    service: http://127.0.0.1:8000
   - service: http_status:404
+
+warp-routing:
+  enabled: true
+
+no-tls-verify: true
+connections: 4
 EOF
 
 # Create Systemd Service
@@ -72,3 +78,4 @@ systemctl enable cloudflared
 systemctl restart cloudflared
 
 echo "✅ Cloudflared is now running and linked to the Cloudflare Tunnel." | tee -a $LOGFILE
+echo "🎯 Traffic will now be routed through Cloudflare for maximum performance." | tee -a $LOGFILE
