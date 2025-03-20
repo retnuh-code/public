@@ -26,26 +26,33 @@ mysql -e "FLUSH PRIVILEGES;"
 
 # 🟢 Step 3: Install WordPress
 echo "Downloading and configuring WordPress..."
-wget https://wordpress.org/latest.tar.gz
-tar -xvzf latest.tar.gz
-mv wordpress /var/www/html
+if [[ ! -d "/var/www/html/wp-admin" ]]; then
+    echo "WordPress not found in /var/www/html/. Downloading..."
+    wget https://wordpress.org/latest.tar.gz
+    tar -xvzf latest.tar.gz
+    mv wordpress/* /var/www/html/
+    rm -rf latest.tar.gz wordpress
+fi
+
 chown -R www-data:www-data /var/www/html
 chmod -R 755 /var/www/html
 
-# Create WordPress config file
-cat <<EOF > /var/www/html/wp-config.php
-<?php
-define( 'DB_NAME', '${DB_NAME}' );
-define( 'DB_USER', '${DB_USER}' );
-define( 'DB_PASSWORD', '${DB_PASS}' );
-define( 'DB_HOST', 'localhost' );
-define( 'FS_METHOD', 'direct' ); 
-define( 'WP_REDIS_HOST', '127.0.0.1' );
-define( 'WP_REDIS_PORT', 6379 );
-define( 'WP_CACHE', true );
-EOF
+# Ensure `wp-cli` is installed
+wp_cli="/usr/local/bin/wp"
+wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O $wp_cli
+chmod +x $wp_cli
 
-# 🟢 Step 4: Configure NGINX for WordPress
+# 🟢 Step 4: Run WordPress Core Installation
+echo "Running WordPress core installation..."
+sudo -u www-data $wp_cli --path=/var/www/html core install --url="http://${LXC_IP}" --title="Coastal Tech Pros" --admin_user="admin" --admin_password="StrongPassword123" --admin_email="admin@example.com"
+
+# 🟢 Step 5: Configure WordPress
+echo "Configuring WordPress settings..."
+sudo -u www-data $wp_cli --path=/var/www/html option update permalink_structure "/%postname%/"
+sudo -u www-data $wp_cli --path=/var/www/html option update blogdescription "Coastal Tech Pros - IT Solutions"
+sudo -u www-data $wp_cli --path=/var/www/html rewrite flush
+
+# 🟢 Step 6: Configure NGINX for WordPress
 echo "Configuring NGINX..."
 cat <<EOF > /etc/nginx/sites-available/wordpress
 server {
@@ -75,55 +82,33 @@ EOF
 ln -s /etc/nginx/sites-available/wordpress /etc/nginx/sites-enabled/
 systemctl restart nginx php8.2-fpm
 
-# 🟢 Step 5: Optimize WordPress Performance
-echo "Optimizing WordPress Performance..."
-wp_cli="/usr/local/bin/wp"
-wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O $wp_cli
-chmod +x $wp_cli
+# 🟢 Step 7: Install Essential Plugins
+echo "Installing essential WordPress plugins..."
+sudo -u www-data $wp_cli --path=/var/www/html plugin install elementor wp-rocket shortpixel-image-optimizer redis-cache rank-math-seo --activate
 
-# **Now Explicitly Set WP Path for All Commands**
-WP_PATH="--path=/var/www/html"
-
-# Install & activate essential plugins
-sudo -u www-data $wp_cli $WP_PATH plugin install elementor wp-rocket shortpixel-image-optimizer redis-cache rank-math-seo --activate
-sudo -u www-data $wp_cli $WP_PATH option update permalink_structure "/%postname%/"
-sudo -u www-data $wp_cli $WP_PATH option update blogdescription "Coastal Tech Pros - IT Solutions"
-sudo -u www-data $wp_cli $WP_PATH rewrite flush
-
-# 🟢 Step 6: Install & Configure AI SEO Automation
+# 🟢 Step 8: Install & Configure AI SEO Automation
 echo "Installing AI-powered SEO tools..."
-sudo -u www-data $wp_cli $WP_PATH plugin install aioseo --activate
-sudo -u www-data $wp_cli $WP_PATH plugin install link-whisper --activate
+sudo -u www-data $wp_cli --path=/var/www/html plugin install aioseo --activate
+sudo -u www-data $wp_cli --path=/var/www/html plugin install link-whisper --activate
 
-# 🟢 Step 7: Google Analytics Integration
+# 🟢 Step 9: Google Analytics Integration
 echo "Setting up Google Analytics..."
 GA_TRACKING_ID="UA-XXXXXXXXX-X"
-sudo -u www-data $wp_cli $WP_PATH option update rank_math_google_analytics "${GA_TRACKING_ID}"
+sudo -u www-data $wp_cli --path=/var/www/html option update rank_math_google_analytics "${GA_TRACKING_ID}"
 
-# 🟢 Step 8: Force Elementor for Editing (Disable Default Editor)
+# 🟢 Step 10: Force Elementor for Editing (Disable Default Editor)
 echo "Disabling Gutenberg and forcing Elementor..."
-sudo -u www-data $wp_cli $WP_PATH plugin install disable-gutenberg --activate
-sudo -u www-data $wp_cli $WP_PATH option update classic-editor-replace "block"
+sudo -u www-data $wp_cli --path=/var/www/html plugin install disable-gutenberg --activate
+sudo -u www-data $wp_cli --path=/var/www/html option update classic-editor-replace "block"
 
-# 🟢 Step 9: Secure WordPress
+# 🟢 Step 11: Secure WordPress
 echo "Securing WordPress..."
-sudo -u www-data $wp_cli $WP_PATH plugin install wordfence --activate
-sudo -u www-data $wp_cli $WP_PATH option update users_can_register 0
-sudo -u www-data $wp_cli $WP_PATH option update comment_registration 1
-sudo -u www-data $wp_cli $WP_PATH option update uploads_use_yearmonth_folders 0
+sudo -u www-data $wp_cli --path=/var/www/html plugin install wordfence --activate
+sudo -u www-data $wp_cli --path=/var/www/html option update users_can_register 0
+sudo -u www-data $wp_cli --path=/var/www/html option update comment_registration 1
+sudo -u www-data $wp_cli --path=/var/www/html option update uploads_use_yearmonth_folders 0
 
-# Configure Fail2Ban for brute-force protection
-cat <<EOF > /etc/fail2ban/jail.local
-[wordpress]
-enabled = true
-filter = wordpress
-logpath = /var/log/nginx/access.log
-maxretry = 5
-bantime = 3600
-EOF
-systemctl restart fail2ban
-
-# 🟢 Step 10: Set Up Automatic Backups & Database Optimization
+# 🟢 Step 12: Set Up Automatic Backups & Database Optimization
 echo "Setting up automatic backups and database optimizations..."
 mkdir -p /var/backups/wordpress
 crontab -l > mycron
