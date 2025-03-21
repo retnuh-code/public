@@ -137,7 +137,6 @@ sudo -u www-data /usr/local/bin/wp --path=/var/www/html plugin install seo-by-ra
 
 # Secure WordPress
 echo -e "${YW}Securing WordPress...${CL}"
-sudo -u www-data /usr/local/bin/wp --path=/var/www/html plugin install wordfence --activate
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html option update users_can_register 0
 sudo -u www-data /usr/local/bin/wp --path=/var/www/html option update comment_registration 1
 
