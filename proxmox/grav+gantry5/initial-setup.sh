@@ -5,6 +5,15 @@ set -e  # Exit on error
 echo "🔄 Updating system..."
 sudo apt update && sudo apt upgrade -y
 
+sudo apt update && sudo apt install -y \
+    php-intl \
+    php-yaml \
+    php-apcu \
+    php-memcache \
+    php-memcached \
+    php-redis
+
+
 # Get LXC IP dynamically
 LXC_IP=$(hostname -I | awk '{print $1}')
 echo "🌐 Current LXC IP: $LXC_IP"
