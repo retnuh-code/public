@@ -38,31 +38,36 @@ const getMetadataFromEpub = (filePath) => {
     const title = metadata['dc:title'] || 'Unknown';
     const author = metadata['dc:creator'] || 'Unknown';
 
-    // Step 1: Look for <meta name="cover" content="id">
     const metaTags = Array.isArray(metadata.meta) ? metadata.meta : [metadata.meta];
     const coverMeta = metaTags.find(m => m['@_name'] === 'cover');
-    const coverId = coverMeta?.['@_content'];
+    const coverId = coverMeta?.['@_content'] || '';
 
-    // Step 2: Try to find matching <item id=coverId>
     let coverHref = '';
-    if (coverId) {
-      const matchById = manifest.find(i => i['@_id'] === coverId && i['@_media-type']?.startsWith('image'));
-      coverHref = matchById?.['@_href'] || '';
+    const matchById = manifest.find(i => i['@_id'] === coverId && i['@_media-type']?.startsWith('image'));
+    if (matchById) {
+      coverHref = matchById['@_href'];
     }
 
-    // Step 3: Try to find <item properties="cover-image">
     if (!coverHref) {
       const matchByProperty = manifest.find(i => i['@_properties']?.includes('cover-image'));
       coverHref = matchByProperty?.['@_href'] || '';
     }
 
-    // Step 4: Fallback to any image in manifest
     if (!coverHref) {
       const anyImage = manifest.find(i => i['@_media-type']?.startsWith('image'));
       coverHref = anyImage?.['@_href'] || '';
     }
 
     const coverPath = coverHref ? path.join(path.dirname(opfPath), coverHref).replaceAll('\\', '/') : null;
+
+    console.log('---- DEBUG ----');
+    console.log('EPUB File:', filePath);
+    console.log('Meta Tags:', metaTags);
+    console.log('Cover ID:', coverId);
+    console.log('Cover Href:', coverHref);
+    console.log('Cover Path:', coverPath);
+    console.log('--------------');
+
     return { title, author, coverPath };
   } catch (err) {
     console.warn(`[EPUB Parse Error] ${filePath}:`, err.message);
@@ -120,12 +125,12 @@ app.get('/api/cover/:source/:filename', (req, res) => {
     const metadata = opf.package.metadata;
     const metaTags = Array.isArray(metadata.meta) ? metadata.meta : [metadata.meta];
     const coverMeta = metaTags.find(m => m['@_name'] === 'cover');
-    const coverId = coverMeta?.['@_content'];
+    const coverId = coverMeta?.['@_content'] || '';
 
     let coverHref = '';
-    if (coverId) {
-      const matchById = manifest.find(i => i['@_id'] === coverId && i['@_media-type']?.startsWith('image'));
-      coverHref = matchById?.['@_href'] || '';
+    const matchById = manifest.find(i => i['@_id'] === coverId && i['@_media-type']?.startsWith('image'));
+    if (matchById) {
+      coverHref = matchById['@_href'];
     }
 
     if (!coverHref) {
