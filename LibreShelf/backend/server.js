@@ -1,10 +1,11 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const cors = require('cors');
-const { Pool } = require('pg');
-const { readMetadata } = require('epub-metadata');
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import cors from 'cors';
+import pkg from 'pg';
+import { readMetadata } from 'epub-metadata';
 
+const { Pool } = pkg;
 const app = express();
 const port = 4000;
 app.use(cors());
@@ -17,9 +18,8 @@ const pool = new Pool({
   port: 5432,
 });
 
-const BOOKS_DIR = path.join(__dirname, 'books');
+const BOOKS_DIR = path.join('/app', 'books');
 
-// --- GET: All scanned books ---
 app.get('/api/books', async (req, res) => {
   const files = fs.readdirSync(BOOKS_DIR);
   const books = [];
