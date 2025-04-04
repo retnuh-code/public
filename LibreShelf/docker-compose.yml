@@ -3,7 +3,15 @@ services:
     build: ./backend
     container_name: libreshelf-backend
     volumes:
-      - ./books:/app/books
+      # Local source for manually uploaded books
+      - ./volumes/local:/app/books/local
+
+      # Optional: mount your NAS or network share here
+      # - /mnt/nas/books:/app/books/shared
+
+      # Optional: other source (e.g. auto-import, cloud, etc.)
+      # - ./volumes/other:/app/books/other
+
       - ./config:/app/config
     ports:
       - "4000:4000"
