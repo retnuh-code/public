@@ -1,15 +1,22 @@
-version: '3.8'
 services:
   libreshelf-backend:
     build: ./backend
     container_name: libreshelf-backend
     volumes:
-      - ./volumes/books:/app/books
+      - ./books:/app/books
       - ./config:/app/config
     ports:
       - "4000:4000"
     depends_on:
       - libreshelf-db
+
+  libreshelf-frontend:
+    build: ./frontend
+    container_name: libreshelf-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - libreshelf-backend
 
   libreshelf-db:
     image: postgres:15
