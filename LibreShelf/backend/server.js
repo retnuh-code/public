@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import pkg from 'pg';
-import { readMetadata } from 'epub-metadata';
 
 const { Pool } = pkg;
 const app = express();
@@ -25,18 +24,13 @@ app.get('/api/books', async (req, res) => {
   const books = [];
 
   for (const file of files) {
-    const fullPath = path.join(BOOKS_DIR, file);
-    if (path.extname(file) === '.epub') {
-      try {
-        const meta = await readMetadata(fullPath);
-        books.push({
-          title: meta.title || file,
-          author: meta.creator || 'Unknown',
-          file: file
-        });
-      } catch (err) {
-        books.push({ title: file, author: 'Unknown', file });
-      }
+    const ext = path.extname(file);
+    if (ext === '.epub') {
+      books.push({
+        title: path.basename(file, ext),
+        author: 'Unknown',
+        file: file
+      });
     }
   }
 
