@@ -17,26 +17,36 @@ const pool = new Pool({
   port: 5432,
 });
 
-const BOOKS_DIR = path.join('/app', 'books');
+const SOURCES = [
+  { name: 'local', dir: '/app/books/local' },
+  { name: 'shared', dir: '/app/books/shared' },
+  { name: 'other', dir: '/app/books/other' }
+];
 
 app.get('/api/books', async (req, res) => {
-  const files = fs.readdirSync(BOOKS_DIR);
-  const books = [];
+  const allBooks = [];
 
-  for (const file of files) {
-    const ext = path.extname(file);
-    if (ext === '.epub') {
-      books.push({
-        title: path.basename(file, ext),
-        author: 'Unknown',
-        file: file
-      });
+  for (const source of SOURCES) {
+    if (!fs.existsSync(source.dir)) continue;
+    const files = fs.readdirSync(source.dir);
+
+    for (const file of files) {
+      const ext = path.extname(file);
+      if (ext === '.epub') {
+        allBooks.push({
+          title: path.basename(file, ext),
+          author: 'Unknown',
+          file: file,
+          source: source.name
+        });
+      }
     }
   }
 
-  res.json(books);
+  res.json(allBooks);
 });
 
 app.listen(port, () => {
   console.log(`LibreShelf backend running on port ${port}`);
 });
+
