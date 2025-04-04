@@ -1,6 +1,6 @@
 FROM node:20
 
-# Add build tools for native modules like epub-metadata
+# Install required build tools (keep for future metadata support)
 RUN apt update && apt install -y \
   python3 \
   make \
@@ -10,7 +10,10 @@ RUN apt update && apt install -y \
   build-essential
 
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
+
 CMD ["node", "server.js"]
