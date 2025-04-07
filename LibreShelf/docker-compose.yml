@@ -1,18 +1,20 @@
-version: '3.8'
-
 services:
   backend:
     build: ./backend
+    container_name: libreshelf-backend
+    volumes:
+      - ./volumes/local:/app/books/local
+      - ./volumes/shared:/app/books/shared
+      - ./volumes/other:/app/books/other
     ports:
       - "4000:4000"
-    environment:
-      - NODE_ENV=production
 
   frontend:
     build: ./frontend
+    container_name: libreshelf-frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
-    environment:
-      - VITE_API_BASE=http://localhost:4000
+
+volumes: {}
