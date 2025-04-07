@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
 import React, { useEffect, useState } from 'react';
-import './index.css';
+import './styles.css';
 
 function App() {
   const [books, setBooks] = useState([]);
