@@ -1,21 +1,18 @@
+# Use the official Node.js LTS image
 FROM node:20
 
-# Install system deps for XML parsing etc.
-RUN apt update && apt install -y \
-  python3 \
-  make \
-  g++ \
-  libxml2-utils \
-  libxslt1-dev \
-  build-essential && \
-  apt clean && rm -rf /var/lib/apt/lists/*
-
+# Set the working directory
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm install --production
 
+# Copy the application code
 COPY . .
 
+# Expose the application port
 EXPOSE 4000
+
+# Start the application
 CMD ["node", "server.js"]
