@@ -14,7 +14,12 @@ export default defineConfig({
     port: 4173,
     strictPort: true,
     cors: true,
-    // ⚠️ This allows all hosts, including domains via Cloudflare Tunnel
-    allowedHosts: 'all',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+    // This disables hostname checking altogether
+    proxy: {},
+    // Add this to remove host filtering
+    allowedHosts: ['*'],
   },
 });
