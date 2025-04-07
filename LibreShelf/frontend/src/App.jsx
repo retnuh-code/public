@@ -6,7 +6,7 @@ function App() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetch('/api/books')
+    fetch(`${window.location.origin}/api/books`)
       .then(res => res.json())
       .then(data => setBooks(data))
       .catch(console.error);
