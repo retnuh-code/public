@@ -7,7 +7,6 @@ import { XMLParser } from 'fast-xml-parser';
 
 const app = express();
 const port = 4000;
-
 app.use(cors());
 
 const SOURCES = [
@@ -23,10 +22,12 @@ const getMetadataFromEpub = (filePath) => {
     const parser = new XMLParser();
 
     const containerEntry = entries.find(e => e.entryName.endsWith('container.xml'));
+    if (!containerEntry) return {};
     const container = parser.parse(containerEntry.getData().toString());
     const opfPath = container.container.rootfiles.rootfile['@_full-path'];
 
     const opfEntry = entries.find(e => e.entryName === opfPath);
+    if (!opfEntry) return {};
     const opf = parser.parse(opfEntry.getData().toString());
 
     const metadata = opf.package.metadata;
@@ -34,17 +35,17 @@ const getMetadataFromEpub = (filePath) => {
     const title = metadata['dc:title']?.['#text'] || metadata['dc:title'] || 'Unknown';
     const author = metadata['dc:creator']?.['#text'] || metadata['dc:creator'] || 'Unknown';
 
-    let coverHref = '';
+    let coverId = '';
     if (Array.isArray(manifest)) {
-      const coverItem = manifest.find(i => i['@_properties']?.includes('cover-image'));
-      coverHref = coverItem?.['@_href'];
-    } else if (manifest?.['@_properties']?.includes('cover-image')) {
-      coverHref = manifest['@_href'];
+      const coverItem = manifest.find(i => i['@_id']?.toLowerCase().includes('cover') && i['@_media-type']?.startsWith('image'));
+      coverId = coverItem?.['@_href'];
+    } else if (manifest?.['@_id']?.toLowerCase().includes('cover')) {
+      coverId = manifest['@_href'];
     }
 
-    const coverPath = coverHref ? path.join(path.dirname(opfPath), coverHref).replace(/\\/g, '/') : null;
+    const coverPath = coverId ? path.join(path.dirname(opfPath), coverId).replaceAll('\\', '/') : null;
     return { title, author, coverPath };
-  } catch (err) {
+  } catch {
     return {};
   }
 };
@@ -54,18 +55,22 @@ app.get('/api/books', (req, res) => {
 
   for (const source of SOURCES) {
     if (!fs.existsSync(source.dir)) continue;
-    const files = fs.readdirSync(source.dir).filter(f => f.endsWith('.epub'));
+    const files = fs.readdirSync(source.dir);
 
     for (const file of files) {
-      const fullPath = path.join(source.dir, file);
-      const { title, author, coverPath } = getMetadataFromEpub(fullPath);
-      allBooks.push({
-        title,
-        author,
-        file,
-        source: source.name,
-        coverUrl: coverPath ? `/api/cover/${source.name}/${file}` : null
-      });
+      const ext = path.extname(file);
+      if (ext === '.epub') {
+        const fullPath = path.join(source.dir, file);
+        const { title, author, coverPath } = getMetadataFromEpub(fullPath);
+
+        allBooks.push({
+          title: title || path.basename(file, ext),
+          author: author || 'Unknown',
+          file: file,
+          source: source.name,
+          coverUrl: coverPath ? `/api/cover/${source.name}/${file}` : null
+        });
+      }
     }
   }
 
@@ -92,13 +97,13 @@ app.get('/api/cover/:source/:filename', (req, res) => {
 
     let coverHref = '';
     if (Array.isArray(manifest)) {
-      const coverItem = manifest.find(i => i['@_properties']?.includes('cover-image'));
+      const coverItem = manifest.find(i => i['@_id']?.toLowerCase().includes('cover') && i['@_media-type']?.startsWith('image'));
       coverHref = coverItem?.['@_href'];
-    } else if (manifest?.['@_properties']?.includes('cover-image')) {
+    } else if (manifest?.['@_id']?.toLowerCase().includes('cover')) {
       coverHref = manifest['@_href'];
     }
 
-    const coverPath = path.join(path.dirname(opfPath), coverHref).replace(/\\/g, '/');
+    const coverPath = path.join(path.dirname(opfPath), coverHref).replaceAll('\\', '/');
     const coverEntry = entries.find(e => e.entryName === coverPath);
     if (!coverEntry) return res.sendStatus(404);
 
