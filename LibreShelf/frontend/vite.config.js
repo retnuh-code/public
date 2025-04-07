@@ -7,10 +7,7 @@ export default defineConfig({
     port: 3000,
     host: true,
     strictPort: true,
-    cors: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    }
+    allowedHosts: 'all'
   },
   server: {
     host: true
