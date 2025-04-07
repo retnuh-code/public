@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import './App.css';
 
-function App() {
+export default function App() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
     fetch('/api/books')
-      .then(res => res.json())
-      .then(data => setBooks(data));
+      .then((res) => res.json())
+      .then((data) => setBooks(data))
+      .catch(console.error);
   }, []);
 
   return (
-    <div className="container">
+    <div className="app">
       <h1>📚 LibreShelf</h1>
-      <div className="grid">
+      <div className="book-grid">
         {books.map((book, idx) => (
-          <div className="book" key={idx}>
-            <img src={book.coverUrl || '/placeholder.jpg'} alt={book.title} />
-            <div className="meta">
-              <div className="title">{book.title?.['#text'] || book.title}</div>
-              <div className="author">{book.author?.['#text'] || book.author}</div>
+          <div className="book-card" key={idx}>
+            {book.coverUrl ? (
+              <img src={book.coverUrl} alt={book.title} className="cover" />
+            ) : (
+              <div className="cover placeholder">No Cover</div>
+            )}
+            <div className="info">
+              <div className="title">{book.title}</div>
+              <div className="author">{book.author}</div>
             </div>
           </div>
         ))}
@@ -27,5 +31,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
