@@ -1,40 +1,20 @@
+version: '3.8'
+
 services:
-  libreshelf-backend:
+  backend:
     build: ./backend
-    container_name: libreshelf-backend
-    volumes:
-      # Local source for manually uploaded books
-      - ./volumes/local:/app/books/local
-
-      # Optional: mount your NAS or network share here
-      # - /mnt/nas/books:/app/books/shared
-
-      # Optional: other source (e.g. auto-import, cloud, etc.)
-      # - ./volumes/other:/app/books/other
-
-      - ./config:/app/config
     ports:
       - "4000:4000"
-    depends_on:
-      - libreshelf-db
+    environment:
+      NODE_ENV: production
 
-  libreshelf-frontend:
+  frontend:
     build: ./frontend
-    container_name: libreshelf-frontend
     ports:
       - "3000:3000"
     depends_on:
-      - libreshelf-backend
-
-  libreshelf-db:
-    image: postgres:15
-    container_name: libreshelf-db
+      - backend
     environment:
-      POSTGRES_DB: libreshelf
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: changeme
-    volumes:
-      - libreshelf_db_data:/var/lib/postgresql/data
-
-volumes:
-  libreshelf_db_data:
+      VITE
+::contentReference[oaicite:0]{index=0}
+ 
