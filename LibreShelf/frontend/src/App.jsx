@@ -1,23 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 
 function App() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/books')
-      .then(response => setBooks(response.data))
-      .catch(error => console.error('Error fetching books:', error));
+    fetch('/api/books')
+      .then(res => res.json())
+      .then(setBooks)
+      .catch(console.error);
   }, []);
 
   return (
-    <div>
-      <h1>LibreShelf</h1>
-      <ul>
-        {books.map(book => (
-          <li key={book.id}>{book.title} by {book.author}</li>
+    <div className="library">
+      <h1>📚 LibreShelf Library</h1>
+      <div className="book-grid">
+        {books.map((book, i) => (
+          <div className="book-card" key={i}>
+            <div className="cover">
+              {book.coverUrl ? (
+                <img src={book.coverUrl} alt={book.title} />
+              ) : (
+                <div className="no-cover">No Cover</div>
+              )}
+            </div>
+            <div className="info">
+              <div className="title">{book.title}</div>
+              <div className="author">{book.author}</div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
