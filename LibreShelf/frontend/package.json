@@ -1,8 +1,6 @@
 {
   "name": "libreshelf-frontend",
   "version": "1.0.0",
-  "description": "Frontend for LibreShelf application",
-  "main": "main.jsx",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -10,11 +8,9 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "axios": "^1.4.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "vite": "^5.2.10",
-    "@vitejs/plugin-react": "^5.2.10"
+    "vite": "^5.2.0"
   }
 }
