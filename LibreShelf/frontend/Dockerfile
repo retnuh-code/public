@@ -2,5 +2,9 @@ FROM node:20
 
 WORKDIR /app
 COPY . .
-RUN npm install && npm run build
-CMD ["npm", "run", "preview", "--", "--host", "--port", "3000"]
+
+RUN npm install
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npx", "vite", "preview", "--host", "--port", "3000"]
