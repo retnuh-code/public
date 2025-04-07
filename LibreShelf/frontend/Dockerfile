@@ -1,21 +1,21 @@
+# Use the official Node.js LTS image
 FROM node:20
 
-# Upgrade npm first (only runs once unless base image changes)
-RUN npm install -g npm@latest
-
+# Set the working directory
 WORKDIR /app
 
-# Only copy package files first so we cache installs
-COPY package*.json ./
-
-# Install deps once, then cache
+# Install dependencies
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Now copy the full app
+# Copy the application code
 COPY . .
 
-# Build once, then serve
+# Build the application
 RUN npm run build
 
+# Expose the application port
 EXPOSE 3000
-CMD ["npm", "run", "preview"]
+
+# Start the application
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0"]
