@@ -21,10 +21,10 @@ services:
     container_name: libreshelf-frontend
     ports:
       - "3000:3000"
-    environment:
-      - VITE_API_BASE=http://libreshelf-backend:4000
     working_dir: /app
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    environment:
+      - VITE_API_BASE=http://0.0.0.0:4000
     volumes:
       - ./frontend:/app
       - /app/node_modules
