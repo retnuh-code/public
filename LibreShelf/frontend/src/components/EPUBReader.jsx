@@ -2,22 +2,28 @@ import { useEffect, useRef } from 'react';
 import ePub from 'epubjs';
 
 const EPUBReader = ({ book, onClose }) => {
-  const viewerRef = useRef(null);
+  const iframeRef = useRef(null);
   const bookRef = useRef(null);
   const renditionRef = useRef(null);
 
   useEffect(() => {
     if (!book) return;
 
-    const bookUrl = `/api/read/${book.source}/${book.file}`;
-    bookRef.current = ePub(bookUrl);
+    const viewer = document.createElement('div');
+    viewer.style.width = '100%';
+    viewer.style.height = '100%';
 
-    const viewerElement = viewerRef.current;
-    if (!viewerElement) return;
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
 
-    renditionRef.current = bookRef.current.renderTo(viewerElement, {
+    // Clear previous content
+    iframe.contentDocument.body.innerHTML = '';
+    iframe.contentDocument.body.appendChild(viewer);
+
+    bookRef.current = ePub(`/api/read/${book.source}/${book.file}`);
+    renditionRef.current = bookRef.current.renderTo(viewer, {
       width: '100%',
-      height: '100%',
+      height: '100%'
     });
 
     bookRef.current.ready.then(() => {
@@ -40,7 +46,12 @@ const EPUBReader = ({ book, onClose }) => {
           Close
         </button>
       </div>
-      <div ref={viewerRef} className="flex-1 overflow-hidden" />
+      <iframe
+        ref={iframeRef}
+        className="flex-1"
+        sandbox="allow-scripts allow-same-origin"
+        title="EPUB Reader"
+      />
     </div>
   );
 };
