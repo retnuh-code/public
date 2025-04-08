@@ -1,6 +1,6 @@
 FROM node:20-bullseye
 
-# Enable Corepack and upgrade to npm 11.2.0 fast
+# Enable npm 11
 RUN corepack enable && corepack prepare npm@11.2.0 --activate
 
 WORKDIR /app
@@ -10,7 +10,9 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5173
+# Build production output
+RUN npm run build
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
-
+# Serve the built static site using Vite's preview server
+EXPOSE 3000
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
