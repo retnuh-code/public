@@ -19,8 +19,17 @@ services:
     container_name: libreshelf-frontend
     ports:
       - "3000:3000"
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    environment:
+      - VITE_API_BASE=/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - libreshelf-backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   libreshelf-db:
     image: postgres:15
