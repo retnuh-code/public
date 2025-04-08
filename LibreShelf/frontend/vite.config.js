@@ -9,11 +9,15 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://host.docker.internal:4000',
+        target: 'http://libreshelf-backend:4000',
         changeOrigin: true
-      },
-      '/api/**': {
-        target: 'http://host.docker.internal:4000',
+      }
+    }
+  },
+  preview: {
+    proxy: {
+      '/api': {
+        target: 'http://libreshelf-backend:4000',
         changeOrigin: true
       }
     }
