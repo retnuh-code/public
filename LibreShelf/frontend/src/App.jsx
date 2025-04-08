@@ -1,36 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import './App.css';
 
 function App() {
   const [books, setBooks] = useState([]);
+  const [rawJson, setRawJson] = useState('');
 
   useEffect(() => {
     fetch('/api/books')
       .then(res => res.json())
-      .then(setBooks)
+      .then(data => {
+        console.log('Fetched books:', data);
+        setBooks(data);
+        setRawJson(JSON.stringify(data, null, 2)); // Dump as string
+      })
       .catch(console.error);
   }, []);
 
   return (
-    <div className="app-container">
-      <h1 className="app-title">📚 LibreShelf</h1>
-      <div className="book-grid">
-        {books.map((book, i) => (
-          <div className="book-card" key={i}>
-            <div className="cover-wrapper">
-              {book.coverUrl ? (
-                <img src={book.coverUrl} alt={book.title} className="book-cover" />
-              ) : (
-                <div className="book-placeholder">📘</div>
-              )}
-            </div>
-            <div className="book-meta">
-              <div className="book-title" title={book.title}>{book.title}</div>
-              <div className="book-author">{book.author}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="min-h-screen bg-black text-white p-8">
+      <h1 className="text-4xl font-bold text-center mb-8 flex items-center justify-center gap-3">
+        📚 <span>LibreShelf</span>
+      </h1>
+
+      {/* DEBUG DUMP */}
+      <pre className="bg-gray-900 p-4 rounded-md text-sm overflow-x-auto">{rawJson}</pre>
     </div>
   );
 }
