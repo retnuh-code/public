@@ -12,12 +12,18 @@ const App = () => {
   }, [])
 
   return (
-    <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {books.map(book => (
-        <BookCard key={`${book.source}/${book.file}`} book={book} />
-      ))}
+    <div className="p-4">
+      <div className="bg-white shadow-md p-4 mb-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold">📚 LibreShelf</h1>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {books.map(book => (
+          <BookCard key={`${book.source}/${book.file}`} book={book} />
+        ))}
+      </div>
     </div>
   )
+  
 }
 
 export default App
