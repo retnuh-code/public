@@ -11,6 +11,10 @@ export default defineConfig({
       '/api': {
         target: 'http://host.docker.internal:4000',
         changeOrigin: true
+      },
+      '/api/**': {
+        target: 'http://host.docker.internal:4000',
+        changeOrigin: true
       }
     }
   }
