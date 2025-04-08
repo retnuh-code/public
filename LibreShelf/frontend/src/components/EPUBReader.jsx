@@ -1,41 +1,41 @@
-import { useEffect, useRef } from 'react';
-import ePub from 'epubjs';
+import { useEffect, useState } from 'react';
 
 const EPUBReader = ({ book, onClose }) => {
-  const viewerRef = useRef(null);
-  const bookRef = useRef(null);
-  const renditionRef = useRef(null);
+  const [htmlContent, setHtmlContent] = useState('');
 
   useEffect(() => {
-    if (!book) return;
+    const fetchEPUB = async () => {
+      try {
+        const url = `/api/read/${book.source}/${book.file}`;
+        const response = await fetch(url);
+        const blob = await response.blob();
 
-    const bookUrl = `/api/read/${book.source}/${book.file}`;
-    bookRef.current = ePub(bookUrl);
+        const zip = await JSZip.loadAsync(blob);
+        const containerXml = await zip.file('META-INF/container.xml').async('string');
+        const parser = new DOMParser();
+        const containerDoc = parser.parseFromString(containerXml, 'application/xml');
+        const rootfilePath = containerDoc.querySelector('rootfile').getAttribute('full-path');
 
-    const viewerElement = viewerRef.current;
-    if (!viewerElement) return;
+        const opfXml = await zip.file(rootfilePath).async('string');
+        const opfDoc = parser.parseFromString(opfXml, 'application/xml');
+        const item = [...opfDoc.querySelectorAll('item')].find(i => i.getAttribute('media-type') === 'application/xhtml+xml');
 
-    // Clear existing content before rendering
-    viewerElement.innerHTML = '';
+        if (!item) throw new Error('XHTML content not found');
 
-    renditionRef.current = bookRef.current.renderTo(viewerElement, {
-      width: '100%',
-      height: '100%',
-      flow: 'paginated'
-    });
-
-    bookRef.current.ready
-      .then(() => renditionRef.current.display())
-      .catch(console.error);
-
-    return () => {
-      renditionRef.current?.destroy();
-      bookRef.current?.destroy();
+        const contentPath = rootfilePath.replace(/[^/]+$/, '') + item.getAttribute('href');
+        const xhtml = await zip.file(contentPath).async('string');
+        setHtmlContent(xhtml);
+      } catch (err) {
+        console.error('Failed to load EPUB:', err);
+        setHtmlContent('<p class="text-red-600">Failed to load EPUB content.</p>');
+      }
     };
+
+    fetchEPUB();
   }, [book]);
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col overflow-auto">
       <div className="p-2 bg-gray-200 border-b text-right">
         <button
           onClick={onClose}
@@ -44,12 +44,7 @@ const EPUBReader = ({ book, onClose }) => {
           Close
         </button>
       </div>
-      <div
-        ref={viewerRef}
-        className="flex-1 overflow-hidden"
-        id="epub-viewer"
-        style={{ width: '100%', height: '100%' }}
-      />
+      <div className="p-6 prose max-w-none" dangerouslySetInnerHTML={{ __html: htmlContent }} />
     </div>
   );
 };
