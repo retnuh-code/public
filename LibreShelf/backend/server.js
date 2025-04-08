@@ -1,4 +1,3 @@
-// backend/server.js
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
@@ -121,6 +120,7 @@ app.get('/api/cover/:source/:file', (req, res) => {
   }
 });
 
+// ✅ Send EPUB file to Readium
 app.get('/api/read/:source/:file', (req, res) => {
   const { source, file } = req.params;
   const sourceDir = SOURCES.find(s => s.name === source)?.dir;
@@ -132,6 +132,5 @@ app.get('/api/read/:source/:file', (req, res) => {
   res.setHeader('Content-Type', 'application/epub+zip');
   res.sendFile(filePath);
 });
-
 
 app.listen(port, () => console.log(`Backend running on port ${port}`));
