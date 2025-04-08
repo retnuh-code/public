@@ -1,11 +1,11 @@
-FROM node:20
+FROM node:20-bullseye
 
-# Upgrade npm to 11.2.0
-RUN npm install -g npm@11.2.0
+# Enable Corepack and upgrade to npm 11.2.0 fast
+RUN corepack enable && corepack prepare npm@11.2.0 --activate
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 RUN npm install
 
 COPY . .
