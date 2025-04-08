@@ -1,20 +1,33 @@
+version: '3.8'
+
 services:
   libreshelf-backend:
     build: ./backend
     container_name: libreshelf-backend
     ports:
       - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://admin:changeme@libreshelf-db/libreshelf
     volumes:
       - ./volumes/local:/app/books/local
       - ./volumes/shared:/app/books/shared
       - ./volumes/other:/app/books/other
       - ./config:/app/config
+    depends_on:
+      - libreshelf-db
 
   libreshelf-frontend:
     build: ./frontend
     container_name: libreshelf-frontend
     ports:
       - "3000:3000"
+    environment:
+      - VITE_API_BASE=http://libreshelf-backend:4000
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - libreshelf-backend
 
