@@ -14,8 +14,8 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "5.0.2",
-    "vite": "6.2.5"
+    "@vitejs/plugin-react": "4.2.1",
+    "vite": "5.2.10"
   },
   "engines": {
     "node": ">=18.0.0"
