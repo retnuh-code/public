@@ -1,36 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import './App.css';
+import React, { useEffect, useState } from 'react'
+import BookCard from './components/BookCard'
 
-function App() {
-  const [books, setBooks] = useState([]);
+const App = () => {
+  const [books, setBooks] = useState([])
 
   useEffect(() => {
-    fetch('/api/books')
-      .then((res) => res.json())
-      .then((data) => setBooks(data))
-      .catch((err) => console.error('Failed to fetch books:', err));
-  }, []);
+    fetch(`${import.meta.env.VITE_API_BASE}/books`)
+      .then(res => res.json())
+      .then(setBooks)
+      .catch(console.error)
+  }, [])
 
   return (
-    <div className="container">
-      <h1 className="header">📚 LibreShelf</h1>
-      <div className="grid">
-        {books.map((book, idx) => (
-          <div className="card" key={idx}>
-            <img
-              src={book.coverUrl || '/default-cover.jpg'}
-              alt={book.title}
-              className="cover"
-            />
-            <div className="info">
-              <div className="title">{book.title}</div>
-              <div className="author">{book.author}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {books.map(book => (
+        <BookCard key={book.id} book={book} />
+      ))}
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
+

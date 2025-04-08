@@ -1,9 +1,15 @@
 FROM node:20
 
-WORKDIR /app
-COPY . .
-RUN npm install
-RUN npm run build
+# Upgrade npm to 11.2.0
+RUN npm install -g npm@11.2.0
 
-EXPOSE 3000
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]
