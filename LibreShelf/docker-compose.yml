@@ -33,6 +33,16 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  libreshelf-frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: libreshelf-frontend-prod
+    ports:
+      - "8080:80"
+    depends_on:
+      - libreshelf-backend
+
   libreshelf-db:
     image: postgres:15
     container_name: libreshelf-db
