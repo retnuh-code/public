@@ -15,14 +15,22 @@ const EPUBReader = ({ book, onClose }) => {
     const viewerElement = viewerRef.current;
     if (!viewerElement) return;
 
+    // 🔧 Allow scripts to run inside the iframe
+    setTimeout(() => {
+      const iframe = viewerElement.querySelector('iframe');
+      if (iframe?.sandbox) {
+        iframe.removeAttribute('sandbox');
+      }
+    }, 500); // Delay to ensure iframe exists
+
     renditionRef.current = bookRef.current.renderTo(viewerElement, {
       width: '100%',
       height: '100%',
     });
 
-    bookRef.current.ready.then(() => {
-      renditionRef.current.display();
-    }).catch(console.error);
+    bookRef.current.ready
+      .then(() => renditionRef.current.display())
+      .catch(console.error);
 
     return () => {
       renditionRef.current?.destroy();

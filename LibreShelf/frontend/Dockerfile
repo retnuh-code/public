@@ -15,4 +15,5 @@ RUN npm run build
 
 # Serve the built static site using Vite's preview server
 EXPOSE 3000
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000", "--strictPort"]
+
