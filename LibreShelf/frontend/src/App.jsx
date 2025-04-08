@@ -1,66 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import BookCard from './components/BookCard';
-import EPUBReader from './components/EPUBReader';
+import React from 'react';
+import { WebReader } from '@nypl/web-reader';
 
-const App = () => {
-  const [books, setBooks] = useState([]);
-  const [readingBook, setReadingBook] = useState(null);
+// NOTE: Replace these with dynamic values if you want to support per-book routing
+const DEFAULT_SOURCE = 'local';
+const DEFAULT_FILE = 'local.epub';
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE}/books`)
-      .then(res => res.json())
-      .then(setBooks)
-      .catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    const path = window.location.pathname;
-    const segments = path.split('/').filter(Boolean);
-    if (segments[0] === 'read' && segments[1]) {
-      const slug = segments[1];
-      const match = books.find(book =>
-        `${book.file}`.replace(/\.epub$/, '').includes(slug)
-      );
-      if (match) setReadingBook(match);
-    }
-  }, [books]);
-
-  const handleRead = (book) => {
-    setReadingBook(book);
-    const slug = book.file.replace(/\.epub$/, '');
-    window.history.pushState({}, '', `/read/${slug}`);
-  };
+function App() {
+  const manifestUrl = `/api/read/${DEFAULT_SOURCE}/${DEFAULT_FILE}`;
 
   return (
-    <div className="p-4">
-      <div className="bg-white shadow-md p-4 mb-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">📚 LibreShelf</h1>
-        {readingBook && (
-          <button
-            className="bg-red-500 text-white px-3 py-1 rounded"
-            onClick={() => {
-              setReadingBook(null);
-              window.history.pushState({}, '', '/');
-            }}
-          >
-            Close
-          </button>
-        )}
-      </div>
-
-      {!readingBook ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {books.map(book => (
-            <div key={`${book.source}/${book.file}`} onClick={() => handleRead(book)}>
-              <BookCard book={book} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <EPUBReader book={readingBook} />
-      )}
+    <div style={{ height: '100vh', width: '100vw' }}>
+      <WebReader
+        manifestUrl={manifestUrl}
+        proxyUrl="/api/proxy"
+        injectables={{}}
+        settings={{
+          enableTTS: false,
+          showControls: true,
+          theme: "day"
+        }}
+      />
     </div>
   );
-};
+}
 
 export default App;
