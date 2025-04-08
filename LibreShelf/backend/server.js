@@ -121,4 +121,17 @@ app.get('/api/cover/:source/:file', (req, res) => {
   }
 });
 
+app.get('/api/read/:source/:file', (req, res) => {
+  const { source, file } = req.params;
+  const sourceDir = SOURCES.find(s => s.name === source)?.dir;
+  if (!sourceDir) return res.sendStatus(404);
+
+  const filePath = path.join(sourceDir, file);
+  if (!fs.existsSync(filePath)) return res.sendStatus(404);
+
+  res.setHeader('Content-Type', 'application/epub+zip');
+  res.sendFile(filePath);
+});
+
+
 app.listen(port, () => console.log(`Backend running on port ${port}`));

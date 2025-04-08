@@ -1,19 +1,21 @@
 import React from 'react'
 
 const BookCard = ({ book }) => {
+  const { title, author, coverUrl } = book;
+
   return (
     <div className="bg-white shadow-md rounded-md overflow-hidden hover:shadow-xl transition">
       <img
-        src={book.cover_url || '/placeholder.jpg'}
-        alt={book.title}
-        className="w-full h-48 object-cover"
+        src={coverUrl}
+        alt={title}
+        className="w-full max-h-60 object-contain bg-white p-2"
       />
       <div className="p-2">
-        <h3 className="text-sm font-semibold truncate">{book.title}</h3>
-        <p className="text-xs text-gray-600 truncate">{book.author}</p>
+        <h2 className="font-semibold text-sm truncate">{title}</h2>
+        <p className="text-xs text-gray-600">{author}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BookCard
+export default BookCard;
