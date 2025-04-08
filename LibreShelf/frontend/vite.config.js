@@ -1,16 +1,11 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import nodeGlobals from 'vite-plugin-node-globals'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), nodeGlobals()],
   server: {
     host: '0.0.0.0',
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://host.docker.internal:4000',
-        changeOrigin: true
-      }
-    }
+    port: 3000
   }
-});
+})
