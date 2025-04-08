@@ -1,10 +1,9 @@
 FROM node:20
 
+# Use latest stable npm
+RUN npm install -g npm@11.8.0
+
 WORKDIR /app
 COPY . .
-
-RUN npm install
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npx", "vite", "preview", "--host", "--port", "3000"]
+RUN npm install && npm run build
+CMD ["npm", "run", "preview"]
