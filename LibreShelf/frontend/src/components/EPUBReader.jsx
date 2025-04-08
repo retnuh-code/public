@@ -1,20 +1,27 @@
 import { useEffect, useRef } from 'react';
 import ePub from 'epubjs';
 
-const EPUBReader = ({ book }) => {
+const EPUBReader = ({ book, onClose }) => {
   const viewerRef = useRef(null);
   const bookRef = useRef(null);
   const renditionRef = useRef(null);
 
   useEffect(() => {
-    if (!book || !viewerRef.current) return;
+    if (!book) return;
 
     const bookUrl = `/api/read/${book.source}/${book.file}`;
     bookRef.current = ePub(bookUrl);
 
-    renditionRef.current = bookRef.current.renderTo(viewerRef.current, {
+    const viewerElement = viewerRef.current;
+    if (!viewerElement) return;
+
+    // Clear existing content before rendering
+    viewerElement.innerHTML = '';
+
+    renditionRef.current = bookRef.current.renderTo(viewerElement, {
       width: '100%',
       height: '100%',
+      flow: 'paginated'
     });
 
     bookRef.current.ready
@@ -27,7 +34,24 @@ const EPUBReader = ({ book }) => {
     };
   }, [book]);
 
-  return <div ref={viewerRef} className="h-screen w-full" />;
+  return (
+    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+      <div className="p-2 bg-gray-200 border-b text-right">
+        <button
+          onClick={onClose}
+          className="bg-red-500 text-white px-3 py-1 rounded"
+        >
+          Close
+        </button>
+      </div>
+      <div
+        ref={viewerRef}
+        className="flex-1 overflow-hidden"
+        id="epub-viewer"
+        style={{ width: '100%', height: '100%' }}
+      />
+    </div>
+  );
 };
 
 export default EPUBReader;
