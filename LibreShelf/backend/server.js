@@ -19,7 +19,7 @@ const getMetadataFromEpub = (filePath) => {
   try {
     const zip = new AdmZip(filePath);
     const entries = zip.getEntries();
-    const parser = new XMLParser();
+    const parser = new XMLParser({ ignoreAttributes: false });
 
     const containerEntry = entries.find(e => e.entryName.endsWith('container.xml'));
     if (!containerEntry) return {};
@@ -30,25 +30,36 @@ const getMetadataFromEpub = (filePath) => {
     if (!opfEntry) return {};
     const opf = parser.parse(opfEntry.getData().toString());
 
-    const metadata = opf.package.metadata;
-    const manifest = opf.package.manifest.item;
-    const title = metadata['dc:title']?.['#text'] || metadata['dc:title'] || 'Unknown';
+    const metadata = opf.package?.metadata || {};
+    const manifest = Array.isArray(opf.package?.manifest?.item)
+      ? opf.package.manifest.item
+      : [opf.package?.manifest?.item];
+
+    const title = metadata['dc:title']?.['#text'] || metadata['dc:title'] || path.basename(filePath);
     const author = metadata['dc:creator']?.['#text'] || metadata['dc:creator'] || 'Unknown';
 
-    let coverId = '';
-    if (Array.isArray(manifest)) {
-      const coverItem = manifest.find(i => i['@_id']?.toLowerCase().includes('cover') && i['@_media-type']?.startsWith('image'));
-      coverId = coverItem?.['@_href'];
-    } else if (manifest?.['@_id']?.toLowerCase().includes('cover')) {
-      coverId = manifest['@_href'];
-    }
+    let coverHref = '';
+    const coverMeta = Array.isArray(metadata.meta)
+      ? metadata.meta.find(m => m['@_name']?.toLowerCase() === 'cover')
+      : metadata.meta;
 
-    const coverPath = coverId ? path.join(path.dirname(opfPath), coverId).replaceAll('\\', '/') : null;
+    const coverId = coverMeta?.['@_content'];
+    const coverItem = manifest.find(i =>
+      i['@_id'] === coverId || i['@_href']?.toLowerCase().includes('cover')
+    );
+
+    coverHref = coverItem?.['@_href'];
+    const coverPath = coverHref
+      ? path.join(path.dirname(opfPath), coverHref).replaceAll('\\', '/')
+      : null;
+
     return { title, author, coverPath };
-  } catch {
+  } catch (err) {
+    console.error('Metadata parse error:', err);
     return {};
   }
 };
+
 
 app.get('/api/books', (req, res) => {
   const allBooks = [];
