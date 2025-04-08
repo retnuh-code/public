@@ -28,7 +28,7 @@ docker builder prune -a -f
 docker system prune -a --volumes -f
 
 
-git clone https://github.com/retnuh-code/public/LibreShelf.git
-cd LibreShelf
+git clone https://github.com/retnuh-code/public.git
+cd ~/public/LibreShelf
 docker compose build --no-cache
 docker compose up -d
