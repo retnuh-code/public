@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import nodeGlobals from 'vite-plugin-node-globals'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export default defineConfig({
-  plugins: [react(), nodeGlobals()],
+  define: {
+    'process.env': {}
+  },
+  plugins: [react()],
   server: {
     host: '0.0.0.0',
     port: 3000
