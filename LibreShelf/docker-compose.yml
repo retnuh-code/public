@@ -1,21 +1,16 @@
 services:
-  backend:
-    build: ./backend
-    container_name: libreshelf-backend
-    ports:
-      - "4000:4000"
-    volumes:
-      - ./volumes/local:/app/books/local
-      - ./volumes/shared:/app/books/shared
-      - ./volumes/other:/app/books/other
-
   frontend:
-    build: ./frontend
-    container_name: libreshelf-frontend
+    build:
+      context: ./frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
 
-volumes:
-  books:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./volumes:/app/books
