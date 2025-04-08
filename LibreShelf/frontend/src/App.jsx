@@ -1,5 +1,5 @@
 import React from 'react';
-import { WebReader } from '@nypl/web-reader';
+import WebReader from "@nypl/web-reader";
 
 // NOTE: Replace these with dynamic values if you want to support per-book routing
 const DEFAULT_SOURCE = 'local';
