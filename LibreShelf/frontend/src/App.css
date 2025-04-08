@@ -1,77 +1,61 @@
-/* frontend/src/App.css */
 body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
     background-color: #111;
     color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
   }
   
-  .main-wrapper {
+  .container {
     padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    text-align: center;
   }
   
-  .title {
-    text-align: center;
+  .header {
     font-size: 2.5rem;
     margin-bottom: 2rem;
   }
   
-  .book-grid {
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.5rem;
-  }
-  
-  .book-card {
-    background: #1c1c1c;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    transition: transform 0.2s;
-  }
-  
-  .book-card:hover {
-    transform: scale(1.02);
-  }
-  
-  .book-cover {
-    height: 240px;
-    background: #333;
-    display: flex;
-    align-items: center;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     justify-content: center;
   }
   
-  .book-cover img {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
+  .card {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
   }
   
-  .no-cover {
-    color: #777;
-    font-size: 0.9rem;
+  .card:hover {
+    transform: scale(1.02);
   }
   
-  .book-info {
-    padding: 1rem;
+  .cover {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
   }
   
-  .book-title {
+  .info {
+    padding: 0.5rem;
+  }
+  
+  .title {
     font-size: 1rem;
     font-weight: bold;
     color: #fff;
-    margin-bottom: 0.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   
-  .book-author {
-    font-size: 0.9rem;
+  .author {
+    font-size: 0.85rem;
     color: #aaa;
   }
   
