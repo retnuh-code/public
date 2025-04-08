@@ -1,16 +1,28 @@
+version: "3.8"
 services:
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./backend
+  libreshelf-backend:
+    build: ./backend
     ports:
       - "4000:4000"
     volumes:
       - ./volumes:/app/books
+      - ./config:/app/config
+
+  libreshelf-frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - libreshelf-backend
+
+  libreshelf-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: libreshelf
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - libreshelf_db_data:/var/lib/postgresql/data
+
+volumes:
+  libreshelf_db_data:
