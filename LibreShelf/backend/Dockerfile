@@ -1,7 +1,7 @@
 FROM node:20
 
-# Use latest stable npm
-RUN npm install -g npm@11.8.0
+# Use the latest available stable version of npm
+RUN npm install -g npm@11.2.0
 
 # Install backend dependencies
 RUN apt update && apt install -y \
