@@ -1,21 +1,17 @@
 import React from "react";
-import WebReader from "@readium/react-web-reader";
+import { WebReader } from "@readium/react-web-reader";
 
-const App = () => {
-  const exampleEpub = "/books/example.epub"; // Replace with actual file or API-served path
-
+export default function App() {
   return (
-    <div style={{ height: "100vh" }}>
+    <div style={{ height: "100vh", width: "100vw" }}>
       <WebReader
-        url={exampleEpub}
-        title="LibreShelf Reader"
+        manifestUrl="/example/publication/manifest.json"
+        proxyUrl={url => `/api/proxy?url=${encodeURIComponent(url)}`}
         injectables={{
-          styles: [],
-          scripts: []
+          scripts: [],
+          styles: []
         }}
       />
     </div>
   );
-};
-
-export default App;
+}
