@@ -1,54 +1,53 @@
 import fs from 'fs';
-import unzipper from 'unzipper';
 import path from 'path';
+import unzipper from 'unzipper';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function parseEPUB(filePath) {
-  let title = 'Unknown Title';
-  let author = 'Unknown Author';
-  let coverImage = null;
-  const tempDir = `/tmp/cover-${uuidv4()}`;
+  try {
+    const directory = await unzipper.Open.file(filePath);
+    const container = directory.files.find(f => f.path === 'META-INF/container.xml');
+    const containerXml = await container.buffer();
+    const rootFileMatch = containerXml.toString().match(/full-path="(.+?)"/);
+    const rootFilePath = rootFileMatch?.[1];
 
-  await fs.promises.mkdir(tempDir, { recursive: true });
+    const rootFile = directory.files.find(f => f.path === rootFilePath);
+    const rootContent = await rootFile.buffer();
 
-  const stream = fs.createReadStream(filePath).pipe(unzipper.Extract({ path: tempDir }));
+    const titleMatch = rootContent.toString().match(/<dc:title[^>]*>(.*?)<\/dc:title>/);
+    const authorMatch = rootContent.toString().match(/<dc:creator[^>]*>(.*?)<\/dc:creator>/);
+    const coverIdMatch = rootContent.toString().match(/<meta[^>]*name="cover"[^>]*content="(.*?)"/);
 
-  await new Promise((resolve, reject) => {
-    stream.on('close', resolve);
-    stream.on('error', reject);
-  });
+    const coverId = coverIdMatch?.[1];
+    let coverFile = null;
 
-  const containerPath = path.join(tempDir, 'META-INF', 'container.xml');
-  if (!fs.existsSync(containerPath)) return { title, author };
-
-  const containerXML = fs.readFileSync(containerPath, 'utf-8');
-  const opfPathMatch = containerXML.match(/full-path="([^"]+)"/);
-  if (!opfPathMatch) return { title, author };
-
-  const opfPath = path.join(tempDir, opfPathMatch[1]);
-  if (!fs.existsSync(opfPath)) return { title, author };
-
-  const opfXML = fs.readFileSync(opfPath, 'utf-8');
-  const titleMatch = opfXML.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/);
-  const authorMatch = opfXML.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/);
-  const coverIdMatch = opfXML.match(/<meta[^>]+name=["']cover["'][^>]+content=["']([^"']+)["']/);
-
-  title = titleMatch?.[1] ?? title;
-  author = authorMatch?.[1] ?? author;
-
-  if (coverIdMatch) {
-    const coverId = coverIdMatch[1];
-    const imageIdMatch = opfXML.match(
-      new RegExp(`<item[^>]+id=["']${coverId}["'][^>]+href=["']([^"']+)["']`, 'i')
-    );
-
-    if (imageIdMatch) {
-      const imagePath = path.join(path.dirname(opfPath), imageIdMatch[1]);
-      const imageBase64 = fs.readFileSync(imagePath).toString('base64');
-      const mimeType = imagePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
-      coverImage = `data:${mimeType};base64,${imageBase64}`;
+    if (coverId) {
+      const coverHrefMatch = rootContent.toString().match(
+        new RegExp(`<item[^>]*id="${coverId}"[^>]*href="(.*?)"`, 'i')
+      );
+      const coverHref = coverHrefMatch?.[1];
+      if (coverHref) {
+        const coverFullPath = path.join(path.dirname(rootFilePath), coverHref);
+        const coverEntry = directory.files.find(f => f.path === coverFullPath);
+        if (coverEntry) {
+          const coverBuffer = await coverEntry.buffer();
+          const base64 = coverBuffer.toString('base64');
+          coverFile = `data:image/jpeg;base64,${base64}`;
+        }
+      }
     }
-  }
 
-  return { title, author, cover: coverImage };
+    return {
+      title: titleMatch?.[1] || 'Unknown Title',
+      author: authorMatch?.[1] || 'Unknown Author',
+      cover: coverFile,
+    };
+  } catch (err) {
+    console.error(`Failed to parse EPUB "${filePath}":`, err.message);
+    return {
+      title: 'Unknown',
+      author: 'Unknown',
+      cover: null,
+    };
+  }
 }

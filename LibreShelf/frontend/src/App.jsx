@@ -1,7 +1,5 @@
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import Read from './pages/Read';
+import { Outlet, Link } from 'react-router-dom';
 
 export default function App() {
   return (
@@ -12,10 +10,7 @@ export default function App() {
         </Link>
       </header>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/read/:filename" element={<Read />} />
-      </Routes>
+      <Outlet />
     </div>
   );
 }
