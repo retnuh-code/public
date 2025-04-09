@@ -10,6 +10,7 @@
     "cors": "*",
     "epub2": "*",
     "express": "*",
-    "pdf-parse": "*"
+    "pdf-parse": "*",
+    "unzipper": "*"
   }
 }

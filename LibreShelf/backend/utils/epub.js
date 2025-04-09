@@ -1,15 +1,22 @@
 import fs from 'fs';
-import epubMetadata from 'epub-metadata';
+import path from 'path';
+import unzipper from 'unzipper';
 
-export async function parseEPUB(filePath) {
-  try {
-    const metadata = await epubMetadata(fs.createReadStream(filePath));
-    return {
-      title: metadata.title || 'Unknown Title',
-      author: metadata.creator || 'Unknown Author',
-      cover: null
-    };
-  } catch {
-    return { title: 'Unknown EPUB', author: 'Unknown', cover: null };
+export async function extractEpubMetadata(filePath) {
+  const stream = fs.createReadStream(filePath).pipe(unzipper.Parse({ forceStream: true }));
+  for await (const entry of stream) {
+    if (entry.path.match(/\.opf$/)) {
+      const content = await entry.buffer();
+      const xml = content.toString();
+      const titleMatch = xml.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/);
+      const authorMatch = xml.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/);
+      return {
+        title: titleMatch?.[1] ?? 'Unknown Title',
+        author: authorMatch?.[1] ?? 'Unknown Author',
+      };
+    } else {
+      entry.autodrain();
+    }
   }
+  return { title: 'Unknown Title', author: 'Unknown Author' };
 }
