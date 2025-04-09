@@ -1,19 +1,17 @@
 import fs from 'fs';
-import pdfParse from 'pdf-parse';
+import { getDocument } from 'pdfjs-dist';
 
-/**
- * Reads and parses a PDF file for metadata and text
- * @param {string} filePath - Path to the PDF file
- * @returns {Promise<Object>} - Parsed PDF metadata and text
- */
 export async function parsePDF(filePath) {
   try {
-    const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdfParse(dataBuffer);
+    const data = new Uint8Array(fs.readFileSync(filePath));
+    const pdf = await getDocument({ data }).promise;
+    const metadata = await pdf.getMetadata();
+    const info = metadata.info || {};
+
     return {
-      title: data.info?.Title || 'Unknown',
-      author: data.info?.Author || 'Unknown',
-      text: data.text || ''
+      title: info.Title || 'Unknown',
+      author: info.Author || 'Unknown',
+      text: '', // Add text parsing if needed later
     };
   } catch (err) {
     console.error(`Error parsing PDF at ${filePath}:`, err.message);
