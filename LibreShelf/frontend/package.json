@@ -11,6 +11,7 @@
     "react": "",
     "react-dom": "",
     "react-router-dom": "",
+    "uuid": "^9.0.1",
     "@nypl/web-reader": ""
   },
   "devDependencies": {
