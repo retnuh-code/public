@@ -26,6 +26,11 @@ app.get('/api/read/:filename', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/health', (req, res) => {
+  res.send('OK');
+});
+
+
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });

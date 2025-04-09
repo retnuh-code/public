@@ -9,6 +9,11 @@ services:
       - ./books:/app/books
     environment:
       - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build:
@@ -17,10 +22,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
-    environment:
-      - BACKEND_HOST=backend
-      - BACKEND_PORT=4000
+      backend:
+        condition: service_healthy
 
   db:
     image: postgres:latest
