@@ -1,12 +1,11 @@
-import React from 'react'
-import Reader from './components/Reader'
+import React from 'react';
+import ReadiumViewer from './components/ReadiumViewer.jsx';
 
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen bg-gray-100 text-black">
-      <Reader />
+    <div>
+      <h1>LibreShelf Readium Viewer</h1>
+      <ReadiumViewer />
     </div>
-  )
+  );
 }
-
-export default App
