@@ -1,27 +1,21 @@
-import React from 'react';
-import WebReader from "@nypl/web-reader";
+import React from "react";
+import WebReader from "@readium/react-web-reader";
 
-// NOTE: Replace these with dynamic values if you want to support per-book routing
-const DEFAULT_SOURCE = 'local';
-const DEFAULT_FILE = 'local.epub';
-
-function App() {
-  const manifestUrl = `/api/read/${DEFAULT_SOURCE}/${DEFAULT_FILE}`;
+const App = () => {
+  const exampleEpub = "/books/example.epub"; // Replace with actual file or API-served path
 
   return (
-    <div style={{ height: '100vh', width: '100vw' }}>
+    <div style={{ height: "100vh" }}>
       <WebReader
-        manifestUrl={manifestUrl}
-        proxyUrl="/api/proxy"
-        injectables={{}}
-        settings={{
-          enableTTS: false,
-          showControls: true,
-          theme: "day"
+        url={exampleEpub}
+        title="LibreShelf Reader"
+        injectables={{
+          styles: [],
+          scripts: []
         }}
       />
     </div>
   );
-}
+};
 
 export default App;
