@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare yarn@stable --activate
 
-COPY package.json yarn.lock ./
+COPY package.json ./
 RUN yarn install
 
 COPY . .
