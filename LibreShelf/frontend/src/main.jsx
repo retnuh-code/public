@@ -8,7 +8,7 @@ import Read from './pages/Read.jsx';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App />}>
+      <Route path="*" element={<App />}>
         <Route index element={<Home />} />
         <Route path="/read/:filename" element={<Read />} />
       </Route>
