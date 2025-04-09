@@ -1,19 +1,14 @@
-# Use official Node.js image
-FROM node:20 as builder
+FROM node:20-bullseye
 
-# Create app directory
+RUN corepack enable && corepack prepare npm@11.2.0 --activate
+
 WORKDIR /app
 
-# Install dependencies
-COPY package*.json ./
+COPY package.json ./
 RUN npm install
 
-# Copy source
 COPY . .
 
-# Build the app
-RUN npm run build
+EXPOSE 3000
 
-# Use nginx to serve built files
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
