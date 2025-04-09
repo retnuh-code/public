@@ -1,11 +1,12 @@
-import React from 'react';
-import ReadiumViewer from './components/ReadiumViewer.jsx';
+import React from "react";
+import Reader from "./components/Reader";
 
-export default function App() {
+const App = () => {
   return (
-    <div>
-      <h1>LibreShelf Readium Viewer</h1>
-      <ReadiumViewer />
+    <div style={{ height: "100vh", width: "100vw" }}>
+      <Reader />
     </div>
   );
-}
+};
+
+export default App;
