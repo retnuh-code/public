@@ -26,6 +26,10 @@ services:
       - "3000:80"
     depends_on:
       - backend
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 4000
+
 
 volumes:
   db_data:
