@@ -1,43 +1,41 @@
+version: "3.9"
+
 services:
   libreshelf-db:
-    image: postgres:15
-    restart: unless-stopped
+    image: postgres:13
     environment:
-      POSTGRES_DB: libreshelf
       POSTGRES_USER: libreshelf
       POSTGRES_PASSWORD: libreshelf
+      POSTGRES_DB: libreshelf
     volumes:
-      - libreshelf-db-data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     networks:
       - libreshelf-net
 
   libreshelf-backend:
     build:
       context: ./backend
-    restart: unless-stopped
+    ports:
+      - "3001:3001"
     environment:
       DATABASE_URL: postgres://libreshelf:libreshelf@libreshelf-db:5432/libreshelf
     depends_on:
       - libreshelf-db
-    volumes:
-      - ./books/local:/app/books/local
-      - ./books/shared:/app/books/shared
     networks:
       - libreshelf-net
 
   libreshelf-frontend:
     build:
       context: ./frontend
-    restart: unless-stopped
+    ports:
+      - "3000:80"
     depends_on:
       - libreshelf-backend
-    ports:
-      - "3000:3000"
     networks:
       - libreshelf-net
 
 volumes:
-  libreshelf-db-data:
+  db_data:
 
 networks:
   libreshelf-net:
