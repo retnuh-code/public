@@ -1,15 +1,17 @@
 import fs from 'fs';
 import pdfParse from 'pdf-parse';
 
+/**
+ * Extract metadata and text from a PDF file
+ * @param {string} filePath - Full path to the PDF file
+ * @returns {Promise<Object>} - Parsed PDF metadata and text
+ */
 export async function parsePDF(filePath) {
-  try {
-    const data = await pdfParse(fs.readFileSync(filePath));
-    return {
-      title: data.info.Title || 'Untitled PDF',
-      author: data.info.Author || 'Unknown Author',
-      cover: null
-    };
-  } catch {
-    return { title: 'Unknown PDF', author: 'Unknown', cover: null };
-  }
+  const dataBuffer = fs.readFileSync(filePath);
+  const data = await pdfParse(dataBuffer);
+  return {
+    title: data.info.Title || 'Unknown',
+    author: data.info.Author || 'Unknown',
+    text: data.text || ''
+  };
 }
