@@ -7,8 +7,9 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "epub2": "",
-    "express": "",
-    "pdf-parse": ""
+    "cors": "*",
+    "epub2": "*",
+    "express": "*",
+    "pdf-parse": "*"
   }
 }

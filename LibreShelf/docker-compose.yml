@@ -1,35 +1,36 @@
 services:
-  db:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: libreshelf
-      POSTGRES_PASSWORD: libreshelf
-      POSTGRES_DB: libreshelf
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
   backend:
     build:
-      context: ./backend
-    volumes:
-      - ./books:/app/books
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "4000:4000"
-    depends_on:
-      - db
+    volumes:
+      - ./books:/app/books
+    environment:
+      - NODE_ENV=production
 
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - backend
     environment:
-      BACKEND_HOST: backend
-      BACKEND_PORT: 4000
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=4000
 
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: libreshelf
+      POSTGRES_PASSWORD: libreshelf
+      POSTGRES_DB: libreshelf
+    volumes:
+      - libreshelf_db_data:/var/lib/postgresql/data
 
 volumes:
-  db_data:
+  libreshelf_db_data:
