@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import rollupNodePolyFill from 'rollup-plugin-polyfill-node'
+import inject from '@rollup/plugin-inject'
 
 export default defineConfig({
   define: {
@@ -11,14 +12,21 @@ export default defineConfig({
   resolve: {
     alias: {
       process: 'rollup-plugin-polyfill-node/polyfills/process-es6',
+      buffer: 'rollup-plugin-polyfill-node/polyfills/buffer-es6'
     },
   },
   optimizeDeps: {
-    include: ['process'],
+    include: ['process', 'buffer'],
   },
   build: {
     rollupOptions: {
-      plugins: [rollupNodePolyFill()],
+      plugins: [
+        inject({
+          process: 'process',
+          Buffer: ['buffer', 'Buffer'],
+        }),
+        rollupNodePolyFill()
+      ],
     },
   },
   server: {
