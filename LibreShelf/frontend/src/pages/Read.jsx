@@ -1,30 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 
-const Read = () => {
+export default function Read() {
   const { filename } = useParams();
-  const readerRef = useRef(null);
-
-  useEffect(() => {
-    const loadReader = async () => {
-      const { Readium } = await import('@readium/web');
-
-      new Readium(readerRef.current, {
-        url: `${window.location.origin}/api/read/${filename}`,
-        settings: {
-          enableBreakpoints: true
-        }
-      }).start();
-    };
-
-    loadReader();
-  }, [filename]);
+  const fileUrl = `/api/read/${filename}`;
+  const viewerUrl = `https://readium.web.app/?epub=${encodeURIComponent(fileUrl)}`;
 
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
-      <div ref={readerRef} style={{ height: '100%' }} />
-    </div>
+    <iframe
+      src={viewerUrl}
+      title="EPUB Reader"
+      style={{ width: '100vw', height: '100vh', border: 'none' }}
+      allowFullScreen
+    />
   );
-};
-
-export default Read;
+}
