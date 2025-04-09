@@ -10,7 +10,7 @@
     "epub2": "*",
     "unzipper": "*",
     "express": "^4.18.2",
-    "pdf-parse": "^1.1.1",
+    "pdf-parse": "1.1.0",
     "cors": "^2.8.5"
   }
 }
