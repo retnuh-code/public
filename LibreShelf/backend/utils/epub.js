@@ -1,9 +1,9 @@
 import fs from 'fs';
-import path from 'path';
 import unzipper from 'unzipper';
 
-export async function extractEpubMetadata(filePath) {
+export async function parseEPUB(filePath) {
   const stream = fs.createReadStream(filePath).pipe(unzipper.Parse({ forceStream: true }));
+
   for await (const entry of stream) {
     if (entry.path.match(/\.opf$/)) {
       const content = await entry.buffer();
@@ -12,11 +12,12 @@ export async function extractEpubMetadata(filePath) {
       const authorMatch = xml.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/);
       return {
         title: titleMatch?.[1] ?? 'Unknown Title',
-        author: authorMatch?.[1] ?? 'Unknown Author',
+        author: authorMatch?.[1] ?? 'Unknown Author'
       };
     } else {
       entry.autodrain();
     }
   }
+
   return { title: 'Unknown Title', author: 'Unknown Author' };
 }
