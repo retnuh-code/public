@@ -1,12 +1,12 @@
-import React from "react";
-import Reader from "./components/Reader";
+import React from 'react';
 
-const App = () => {
+function App() {
   return (
-    <div style={{ height: "100vh", width: "100vw" }}>
-      <Reader />
+    <div>
+      <h1>Welcome to LibreShelf</h1>
+      <p>EPUB Reader integration coming soon.</p>
     </div>
   );
-};
+}
 
 export default App;
