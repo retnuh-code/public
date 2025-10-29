@@ -1,55 +1,94 @@
-# 🏢 On-Prem Scripts
+🧩 Utility Scripts
+==================
 
-Scripts in this folder focus on **local infrastructure, networking, and system diagnostics**.  
+Scripts in this folder are **supporting tools** that assist with data collection, lookup, or automation workflows.\
+They're not tied to a specific platform but are often used alongside Intune, Azure, or other deployment processes.
 
-They're typically used to verify configurations or test internal services such as SMTP relays or DNS.
+* * * * *
 
----
+All scripts in this repository can be executed directly from GitHub using PowerShell's `Invoke-RestMethod` (`irm`) command.
 
-## 📧 test-smtp-server.ps1
+#### ⚠️ Important (TLS 1.2 Fix)
+
+If you see:
+
+`The request was aborted: Could not create SSL/TLS secure channel.`
+
+it means your PowerShell session is using an outdated SSL/TLS version.
+
+Run this once per session **before** calling `irm`:
+
+`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`
+
+You can also make this permanent by adding it to your PowerShell profile:
+
+`Add-Content -Path $PROFILE -Value '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'`
+
+#### Example
+
+`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+irm https://github.com/retnuh-code/public/raw/main/utilities/find-ios-app.ps1 | iex
+find-ios-app -Name "YouTube"`
+
+* * * * *
+
+📱 find-ios-app.ps1
+-------------------
 
 ### Purpose
 
-Sends a test email to validate SMTP relay connectivity and authentication from on-prem servers.
+Looks up iOS app details (Bundle ID, App Name, Store URL, and Publisher) from the Apple App Store.\
+Useful for documenting or preparing iOS applications for Intune or other MDM deployments.
+
+* * * * *
 
 ### Usage
 
 #### Run Locally
 
-```powershell
+`.\find-ios-app.ps1 -Name "YouTube"`
 
-.\test-smtp-server.ps1 -SmtpServer "HNL-TST-WEB-02.holo.pan" -From "hhearne.test@holo.pan" -To "hhearne@initusa.com"
-```
+#### Run from GitHub
 
-Run from GitHub
+`irm https://github.com/retnuh-code/public/raw/main/utilities/find-ios-app.ps1 | iex
+find-ios-app -Name "YouTube"`
 
-```powershell
+* * * * *
 
-irm https://github.com/retnuh-code/public/raw/main/on-prem/test-smtp-server.ps1 | iex
-```
+### Batch CSV Input
 
-test-smtp -SmtpServer "HNL-TST-WEB-02.holo.pan" -From "hhearne.test@holo.pan" -To "hhearne@initusa.com"
+Prepare a CSV file such as:
 
-Parameters
+`Name
+Zoom
+YouTube
+Canva`
 
-Parameter  Description
+Then run:
 
--SmtpServer  Hostname or IP of SMTP relay
+`.\find-ios-app.ps1 -CsvPath "C:\temp\apps.csv" -CsvType Name -CsvOut "C:\temp\results.csv"`
 
--From  Sender email address
+* * * * *
 
--To  Recipient email address
+### Parameters
 
--Subject  Custom email subject
+| Parameter | Description |
+| --- | --- |
+| `-Name` | Interactive search by app name |
+| `-AppID` | Lookup a specific AppID |
+| `-BundleID` | Lookup a specific bundle identifier |
+| `-CsvPath` | Path to a CSV input file |
+| `-CsvType` | Type of data in CSV: `Name`, `AppID`, or `BundleID` |
+| `-CsvOut` | Optional output file path for CSV export |
 
--Body  Email body text
+* * * * *
 
--Port  SMTP port (default 25)
+### Output
 
--UseSsl  Enables SSL/TLS
+Displays formatted results in PowerShell and optionally exports to CSV.
 
-Output
+**Example Output**
 
-Displays connection status and email result in PowerShell.
-
-If successful, you'll see a green "✅ Email sent successfully!" message.
+| Bundle ID | App Name | Store URL | Publisher |
+| --- | --- | --- | --- |
+| com.google.ios.youtube | YouTube | https://apps.apple.com/app/youtube/id544007664 | Google LLC |
