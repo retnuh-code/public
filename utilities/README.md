@@ -98,6 +98,7 @@ Displays formatted results in PowerShell and optionally exports to CSV.
 
 * * * * *
 
+
 🌐 install-microsoft-edge.ps1
 -----------------------------
 
@@ -140,3 +141,66 @@ The script automatically ensures TLS 1.2 compatibility, uses a temporary working
 ❌ **Error:** Download or installation failure message with cause.
 
 * * * * *
+
+
+Add this under Edge and iOS app tools:
+
+`---
+
+## ⚙️ install-generic-software.ps1
+
+### Purpose
+A universal PowerShell installer script for **any EXE or MSI**.
+Prompts for or accepts installer URL, arguments, and optional verification paths.
+Ideal for quick deployment tests, ad-hoc installers, or reusable automation templates.
+
+---
+
+### Usage
+
+#### Run Locally
+```powershell
+.\install-generic-software.ps1 
+```
+
+#### Run from GitHub
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+irm https://github.com/retnuh-code/public/raw/main/utilities/install-generic-software.ps1 | iex
+install-generic-software
+```
+
+* * * * *
+
+### Examples
+
+#### Manual Entry (prompts interactively)
+
+`.\install-generic-software.ps1`
+
+#### Silent install with parameters
+
+`.\install-generic-software.ps1 -Url "https://vendor.com/setup.exe" -Arguments "/quiet /norestart"`
+
+#### With verification
+
+`.\install-generic-software.ps1 -Url "https://vendor.com/setup.msi" -Arguments "/qn" -VerifyPath "C:\Program Files\App\App.exe"`
+
+* * * * *
+
+### Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `-Url` | Full installer download link |
+| `-Arguments` | Command-line arguments for the installer |
+| `-VerifyPath` | Optional file path to confirm installation |
+| `-VerifyProcess` | Optional process name to check post-install |
+
+* * * * *
+
+### Output
+
+✅ Download and install results printed in color-coded format\
+⚠️ Warnings for missing files or processes\
+❌ Errors for failed downloads or installs
