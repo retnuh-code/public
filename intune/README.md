@@ -82,7 +82,7 @@ You'll be prompted for:
 
 `Description,DisplayName,MembershipRule`\
 `Full build apps/configurations/policies for HR Laptops,[HR]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "HR")) -and (device.deviceOSType -eq "Windows")`\
-`Full build apps/configurations/policies for IT Laptops,[IT]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "IT")) -and (device.deviceOSType -eq "Windows")`\
+`Full build apps/configurations/policies for IT Laptops,[IT]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "IT")) -and (device.deviceOSType -eq "Windows")`
 
 * * * * *
 
@@ -90,7 +90,7 @@ You'll be prompted for:
 
 `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`\
 `irm https://github.com/retnuh-code/public/raw/main/intune/create-dynamic-device-groups.ps1 | iex`\
-`create-dynamic-device-groups -CsvPath "C:\temp\CreateDynamicGroups.csv"`\
+`create-dynamic-device-groups -CsvPath "C:\temp\CreateDynamicGroups.csv"`
 
 * * * * *
 
