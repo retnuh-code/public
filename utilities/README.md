@@ -23,11 +23,10 @@ Sends a test email to validate SMTP relay connectivity and authentication from o
 
 Run from GitHub
 
-powershell
-
-Copy code
+```powershell
 
 irm https://github.com/retnuh-code/public/raw/main/on-prem/test-smtp-server.ps1 | iex
+```
 
 test-smtp -SmtpServer "HNL-TST-WEB-02.holo.pan" -From "hhearne.test@holo.pan" -To "hhearne@initusa.com"
 
