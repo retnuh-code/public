@@ -27,9 +27,9 @@ You can also make this permanent by adding it to your PowerShell profile:
 
 #### Example
 
-`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-irm https://github.com/retnuh-code/public/raw/main/intune/create-dynamic-device-groups.ps1 | iex
-create-dynamic-device-groups -Single`
+`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`\
+`irm https://github.com/retnuh-code/public/raw/main/intune/create-dynamic-device-groups.ps1 | iex`\
+`create-dynamic-device-groups -Single`
 
 * * * * *
 
@@ -130,5 +130,4 @@ Each success line includes the group's **DisplayName** and **ObjectId**.
 
 ### 🧑‍💻 Author
 
-**Hunter Hearne**\
-[GitHub -- retnuh-code](https://github.com/retnuh-code)
+**retnuh-code**\[GitHub -- retnuh-code](https://github.com/retnuh-code)
