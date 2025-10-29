@@ -126,8 +126,4 @@ Each success line includes the group's **DisplayName** and **ObjectId**.
 
 -   Azure AD credentials with permission to create groups
 
-* * * * *
 
-### 🧑‍💻 Author
-
-**retnuh-code**\[GitHub -- retnuh-code](https://github.com/retnuh-code)
