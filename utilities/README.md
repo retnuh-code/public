@@ -26,9 +26,9 @@ You can also make this permanent by adding it to your PowerShell profile:
 
 #### Example
 
-`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-irm https://github.com/retnuh-code/public/raw/main/utilities/find-ios-app.ps1 | iex
-find-ios-app -Name "YouTube"`
+`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`\
+`irm https://github.com/retnuh-code/public/raw/main/utilities/find-ios-app.ps1 | iex`\
+`find-ios-app -Name "YouTube"`
 
 * * * * *
 
@@ -59,10 +59,10 @@ find-ios-app -Name "YouTube"`
 
 Prepare a CSV file such as:
 
-`Name
-Zoom
-YouTube
-Canva`
+`Name`\
+`Zoom`\
+`YouTube`\
+`Canva`
 
 Then run:
 
