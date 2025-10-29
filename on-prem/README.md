@@ -44,7 +44,7 @@ Sends a test email to validate SMTP relay connectivity and authentication from o
 
 ```powershell
 
-.\test-smtp-server.ps1 -SmtpServer "HNL-TST-WEB-02.holo.pan" -From "hhearne.test@holo.pan" -To "hhearne@initusa.com"
+.\test-smtp-server.ps1 -SmtpServer "test-server-01.localdomain.com" -From "localemail@localdomain.com" -To "hostedemail@provider.com"
 ```
 
 Run from GitHub
