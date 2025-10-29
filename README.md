@@ -30,6 +30,7 @@ Clone or download any script and execute:
 
 ```powershell
 .\script-name.ps1 -Parameter value
+```
 
 ### 2️⃣ Run Directly from GitHub
 
