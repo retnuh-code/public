@@ -59,10 +59,12 @@ find-ios-app -Name "YouTube"`
 
 Prepare a CSV file such as:
 
-`Name <br />
-Zoom  
-YouTube  
-Canva`
+```csv
+Name
+Zoom
+YouTube
+Canva
+```
 
 Then run:
 
