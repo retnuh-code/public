@@ -67,10 +67,10 @@ You'll be prompted for:
 
 #### ⚙️ Parameterized (Non-Interactive)
 
-`.\create-dynamic-device-groups.ps1 -Single `
-    -DisplayName "[IT]WindowsLaptops" `
-    -Description "Dynamic group for IT-managed Windows laptops" `
-    -MembershipRule "(device.deviceOSType -eq 'Windows')"`
+`.\create-dynamic-device-groups.ps1 -Single `\
+    `-DisplayName "[IT]WindowsLaptops" `\
+    `-Description "Dynamic group for IT-managed Windows laptops" `\
+    `-MembershipRule "(device.deviceOSType -eq 'Windows')"`
 
 * * * * *
 
@@ -80,17 +80,17 @@ You'll be prompted for:
 
 **Example CSV:**
 
-`Description,DisplayName,MembershipRule
-Full build apps/configurations/policies for HR Laptops,[HR]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "HR")) -and (device.deviceOSType -eq "Windows")
-Full build apps/configurations/policies for IT Laptops,[IT]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "IT")) -and (device.deviceOSType -eq "Windows")`
+`Description,DisplayName,MembershipRule`\
+`Full build apps/configurations/policies for HR Laptops,[HR]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "HR")) -and (device.deviceOSType -eq "Windows")`\
+`Full build apps/configurations/policies for IT Laptops,[IT]WindowsLaptops,(device.devicePhysicalIds -any (_ -contains "IT")) -and (device.deviceOSType -eq "Windows")`\
 
 * * * * *
 
 #### 🌐 Run from GitHub
 
-`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-irm https://github.com/retnuh-code/public/raw/main/intune/create-dynamic-device-groups.ps1 | iex
-create-dynamic-device-groups -CsvPath "C:\temp\CreateDynamicGroups.csv"`
+`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`\
+`irm https://github.com/retnuh-code/public/raw/main/intune/create-dynamic-device-groups.ps1 | iex`\
+`create-dynamic-device-groups -CsvPath "C:\temp\CreateDynamicGroups.csv"`\
 
 * * * * *
 
