@@ -94,3 +94,49 @@ Displays formatted results in PowerShell and optionally exports to CSV.
 | Bundle ID | App Name | Store URL | Publisher |
 | --- | --- | --- | --- |
 | com.google.ios.youtube | YouTube | https://apps.apple.com/app/youtube/id544007664 | Google LLC |
+
+
+* * * * *
+
+🌐 install-microsoft-edge.ps1
+-----------------------------
+
+### Purpose
+
+Downloads and installs the latest stable version of **Microsoft Edge (Enterprise x64)** directly from Microsoft's CDN.\
+The script automatically ensures TLS 1.2 compatibility, uses a temporary working directory, and performs a silent MSI installation.
+
+* * * * *
+
+### Usage
+
+#### Run Locally
+
+`.\install-microsoft-edge.ps1`
+
+#### Run from GitHub
+
+`[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`\
+`irm https://github.com/retnuh-code/public/raw/main/utilities/install-microsoft-edge.ps1 | iex`
+
+* * * * *
+
+### Behavior
+
+-   Downloads the **official Edge Enterprise x64 MSI** using Microsoft's redirect
+
+-   Installs silently with `/qn /norestart` (no user interaction)
+
+-   Verifies installation by checking for the Edge executable
+
+-   Displays progress and final success or error messages
+
+* * * * *
+
+### Output
+
+✅ **Success:** `Microsoft Edge installation completed successfully.`\
+⚠️ **Warning:** Installation finished but executable not found.\
+❌ **Error:** Download or installation failure message with cause.
+
+* * * * *
