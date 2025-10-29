@@ -31,6 +31,7 @@ You can also make this permanent by adding it to your PowerShell profile:
 `find-ios-app -Name "YouTube"`
 
 * * * * *
+* * * * *
 
 📱 find-ios-app.ps1
 -------------------
@@ -97,7 +98,7 @@ Displays formatted results in PowerShell and optionally exports to CSV.
 
 
 * * * * *
-
+* * * * *
 
 🌐 install-microsoft-edge.ps1
 -----------------------------
@@ -141,11 +142,8 @@ The script automatically ensures TLS 1.2 compatibility, uses a temporary working
 ❌ **Error:** Download or installation failure message with cause.
 
 * * * * *
+* * * * *
 
-
-Add this under Edge and iOS app tools:
-
-`---
 
 ## ⚙️ install-generic-software.ps1
 
